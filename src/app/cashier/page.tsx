@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -255,7 +256,7 @@ export default function CashierPage() {
                         <Label htmlFor="account-details">Détails du compte</Label>
                         <FormControl>
                           <Input id="account-details" placeholder="ex: Numéro de téléphone ou Compte bancaire" {...field} />
-FormControl>
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -275,3 +276,5 @@ FormControl>
     </div>
   );
 }
+
+    
