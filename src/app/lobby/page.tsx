@@ -6,15 +6,15 @@ import { Label } from "@/components/ui/label";
 import { useUser } from "@/firebase";
 import { mockGames } from "@/lib/mock-data";
 import { Game } from "@/lib/types";
-import { Flame, Loader2, RefreshCw, Spades, Users, ArrowRight, Trophy, Ticket, Droplets, Rabbit, Plus } from "lucide-react";
+import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Ticket, Droplets, Rabbit, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const gameTypes = [
-  { id: "all", name: "Tous les jeux", icon: Spades },
-  { id: "holdem", name: "Texas Hold'em", icon: Spades },
-  { id: "omaha", name: "Omaha", icon: Spades },
+  { id: "all", name: "Tous les jeux", icon: Spade },
+  { id: "holdem", name: "Texas Hold'em", icon: Spade },
+  { id: "omaha", name: "Omaha", icon: Spade },
 ];
 
 const gameFormats = [
@@ -180,7 +180,7 @@ export default function LobbyPage() {
                 </Link>
               </Button>
                <div className="absolute -right-10 -bottom-10 opacity-10">
-                  <Spades size={150} className="text-primary" />
+                  <Spade size={150} className="text-primary" />
               </div>
           </div>
 
