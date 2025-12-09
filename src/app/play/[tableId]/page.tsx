@@ -10,7 +10,6 @@ import { mockPlayers } from "@/lib/mock-data";
 import { Clock, History, Loader2 } from "lucide-react";
 
 export default function PlayPage({ params }: { params: { tableId: string } }) {
-  const { tableId } = params;
   const heroPlayer = mockPlayers.find(p => p.name.includes('Hero'));
   const communityCards = ["A♥", "T♦", "J♣", "K♣", "Q♠"]
 
@@ -23,7 +22,7 @@ export default function PlayPage({ params }: { params: { tableId: string } }) {
       {/* Main game area */}
       <main className="flex-grow flex flex-col">
         <div className="p-4 space-y-1">
-          <h1 className="text-lg font-bold text-white">Table: Antananarivo #{tableId}</h1>
+          <h1 className="text-lg font-bold text-white">Table: Antananarivo #{params.tableId}</h1>
           <p className="text-sm text-muted-foreground">Blinds: 500/1000 Ar</p>
         </div>
         
