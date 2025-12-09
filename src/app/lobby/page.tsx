@@ -110,10 +110,11 @@ interface FilterSidebarProps {
   setActiveFormats: (formats: string[]) => void;
   resetFilters: () => void;
   setOpenCreateGame: (open: boolean) => void;
+  setOpenAiTools: (open: boolean) => void;
 }
 
 
-function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveFormats, resetFilters, setOpenCreateGame }: FilterSidebarProps) {
+function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveFormats, resetFilters, setOpenCreateGame, setOpenAiTools }: FilterSidebarProps) {
   
   const handleFormatChange = (checked: boolean | string, format: string) => {
     if (checked) {
@@ -125,10 +126,16 @@ function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveForm
 
   return (
     <aside className="w-full lg:w-64 bg-card p-4 rounded-lg flex-shrink-0 self-start space-y-6">
-      <Button size="lg" className="w-full font-bold" onClick={() => setOpenCreateGame(true)}>
-          <Gamepad2 className="mr-2"/>
-          Créer une table
-      </Button>
+      <div className="space-y-2">
+        <Button size="lg" className="w-full font-bold" onClick={() => setOpenCreateGame(true)}>
+            <Gamepad2 className="mr-2"/>
+            Créer une table
+        </Button>
+        <Button size="lg" variant="outline" className="w-full font-bold" onClick={() => setOpenAiTools(true)}>
+            <Wand2 className="mr-2"/>
+            Outils IA
+        </Button>
+      </div>
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-3">TYPE DE JEU</h3>
         <div className="space-y-1">
@@ -173,6 +180,7 @@ export default function LobbyPage() {
   const router = useRouter();
   const firestore = useFirestore();
   const [openCreateGame, setOpenCreateGame] = useState(false);
+  const [openAiTools, setOpenAiTools] = useState(false);
 
   const [activeStake, setActiveStake] = useState("Tous");
   const [activeType, setActiveType] = useState('all');
@@ -245,6 +253,17 @@ export default function LobbyPage() {
             <CreateGameForm setOpen={setOpenCreateGame} />
         </DialogContent>
       </Dialog>
+      <Dialog open={openAiTools} onOpenChange={setOpenAiTools}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Outils d'aide IA</DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                <AIVariantSuggester />
+                <AIOpponentGame />
+            </div>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-col lg:flex-row gap-8">
         <FilterSidebar 
           activeType={activeType}
@@ -253,6 +272,7 @@ export default function LobbyPage() {
           setActiveFormats={setActiveFormats}
           resetFilters={resetFilters}
           setOpenCreateGame={setOpenCreateGame}
+          setOpenAiTools={setOpenAiTools}
         />
         <div className="flex-1">
           {/* Featured Event */}
@@ -273,19 +293,6 @@ export default function LobbyPage() {
               </div>
           </div>
           
-          {/* AI Tools */}
-            <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4">
-                    <Wand2 className="text-primary" />
-                    <h2 className="text-2xl font-bold">Outils IA</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <AIVariantSuggester />
-                    <AIOpponentGame />
-                </div>
-            </div>
-
-
           {/* Game Tables */}
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -320,5 +327,3 @@ export default function LobbyPage() {
     </div>
   );
 }
-
-    
