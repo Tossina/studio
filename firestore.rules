@@ -1,0 +1,150 @@
+/**
+ * This Firestore Security Ruleset is designed for the DagoPoker application,
+ * employing a hybrid security model that segregates data based on access patterns.
+ *
+ * Core Philosophy:
+ * The rules enforce a strict, user-centric security model. Data is structurally
+ * segregated into private, shared, and public collections to ensure that authorization
+ * logic remains simple, performant, and secure.
+ *
+ * Data Structure:
+ * - /users/{userId}: Private data tree for each user, containing their profile
+ *   and a subcollection for their transactions. Access is strictly limited to the
+ *   document owner.
+ * - /pokerGames/{pokerGameId}: A top-level collection for shared game documents.
+ *   Access is managed on a per-document basis, granted to users listed as
+ *   participants in the game.
+ * - /aiOpponentProfiles/{aiOpponentProfileId}: A top-level collection for public,
+ *   read-only reference data available to all authenticated users.
+ *
+ * Key Security Decisions:
+ * - User Isolation: A user can only ever access documents within their own
+ *   `/users/{userId}` path. Listing all users is explicitly disallowed.
+ * - Shared Access via Denormalization: The `/pokerGames` collection relies on a
+ *   denormalized `playerIds` array within each game document. This allows for
+ *   efficient authorization checks without costly database queries.
+ * - Read-Only System Data: Collections like `/aiOpponentProfiles` are configured
+ *   to be read-only from the client-side, ensuring system data integrity.
+ *   These would be managed through a trusted backend or the Firebase Console.
+ * - Default Deny: All paths are closed by default, and permissions are granted
+ *   explicitly and granularly for each operation (get, list, create, update, delete).
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------
+    // Helper Functions
+    // ---------------------------
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the requesting user's UID matches the given userId.
+     * This is the primary function for enforcing document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * A robust check for update/delete operations, ensuring the document
+     * both exists and is owned by the requesting user.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * For PokerGames, checks if the requesting user is a participant
+     * in an existing game by looking for their UID in the `playerIds` array.
+     */
+    function isExistingPlayer() {
+      return resource != null && isSignedIn() && request.auth.uid in resource.data.playerIds;
+    }
+
+    /**
+     * For PokerGame creation, ensures the user creating the game
+     * includes their own UID in the initial list of players.
+     */
+    function isCreatingAsPlayer() {
+      return isSignedIn() && request.auth.uid in request.resource.data.playerIds;
+    }
+
+
+    // ---------------------------
+    // Collection Rules
+    // ---------------------------
+
+    /**
+     * @description Controls access to a user's own profile document.
+     * @path /users/{userId}
+     * @allow (create) A new user 'user123' creating their own profile document, ensuring the doc `id` matches their UID.
+     * @allow (get) User 'user123' reading their own profile.
+     * @deny (get) User 'user456' trying to read the profile of 'user123'.
+     * @deny (list) Anyone trying to list all user profiles, protecting user privacy.
+     * @principle Restricts access to a user's own data tree and enforces relational integrity at creation.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Disallow listing all users for security and privacy.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Controls access to a user's financial transactions, nested for ownership.
+       * @path /users/{userId}/transactions/{transactionId}
+       * @allow (create) User 'user123' creating a new transaction for themselves.
+       * @allow (list) User 'user123' listing all of their own transactions.
+       * @deny (get) User 'user456' trying to read a transaction belonging to 'user123'.
+       * @principle Enforces strict document ownership within a user's private data subtree.
+       */
+      match /transactions/{transactionId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    /**
+     * @description Controls access to shared poker game documents.
+     * @path /pokerGames/{pokerGameId}
+     * @allow (list) Any signed-in user listing available games (like a lobby).
+     * @allow (get) A user 'player1' who is in the game's `playerIds` array reading the game state.
+     * @allow (create) A signed-in user creating a new game and adding themselves to the `playerIds` array.
+     * @deny (get) A user 'spectator1' trying to read a game they are not a player in.
+     * @deny (update) A user trying to update a game they are not a player in.
+     * @principle Implements a "Closed Collaborators" model where only participants can read full details or modify the document.
+     */
+    match /pokerGames/{pokerGameId} {
+      allow get: if isExistingPlayer();
+      allow list: if isSignedIn();
+      allow create: if isCreatingAsPlayer();
+      allow update: if isExistingPlayer();
+      allow delete: if isExistingPlayer();
+    }
+
+    /**
+     * @description Controls access to AI opponent profiles, which are public reference data.
+     * @path /aiOpponentProfiles/{aiOpponentProfileId}
+     * @allow (get, list) Any signed-in user can read the AI profiles.
+     * @deny (create, update, delete) All client-side writes are forbidden to protect this system data.
+     * @principle Provides public read access for system-level data while preventing any client modification.
+     */
+    match /aiOpponentProfiles/{aiOpponentProfileId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if false; // This data should be managed by backend administrators only.
+      allow update: if false; // This data should be managed by backend administrators only.
+      allow delete: if false; // This data should be managed by backend administrators only.
+    }
+  }
+}

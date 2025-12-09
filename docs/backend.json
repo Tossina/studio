@@ -1,0 +1,247 @@
+{
+  "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's profile within the DagoPoker application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's username."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time when the user registered.",
+          "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "The date and time of the user's last login.",
+          "format": "date-time"
+        },
+        "preferredCurrency": {
+          "type": "string",
+          "description": "The user's preferred currency for transactions."
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "registrationDate"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a financial transaction (deposit or withdrawal).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Transaction entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to UserProfile. (Relationship: UserProfile 1:N Transaction)"
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "The date and time of the transaction.",
+          "format": "date-time"
+        },
+        "transactionType": {
+          "type": "string",
+          "description": "The type of transaction (deposit or withdrawal)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the transaction."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "The payment method used for the transaction (e.g., Mvola, OrangeMoney)."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the transaction (e.g., pending, completed, failed)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "transactionDate",
+        "transactionType",
+        "amount",
+        "paymentMethod",
+        "status"
+      ]
+    },
+    "PokerGame": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PokerGame",
+      "type": "object",
+      "description": "Represents a single poker game instance.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the PokerGame entity."
+        },
+        "gameVariant": {
+          "type": "string",
+          "description": "The variant of poker being played (e.g., Texas Hold'em, Omaha)."
+        },
+        "gameFormat": {
+          "type": "string",
+          "description": "The format of the game (e.g., Cash Game, MTT, Sit & Go)."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "The date and time when the game started.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "The date and time when the game ended.",
+          "format": "date-time"
+        },
+        "stakes": {
+          "type": "string",
+          "description": "The stakes of the game."
+        },
+        "playerIds": {
+          "type": "array",
+          "description": "References to UserProfiles. (Relationship: UserProfile N:N PokerGame)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "gameVariant",
+        "gameFormat",
+        "startTime",
+        "stakes"
+      ]
+    },
+    "AiOpponentProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AiOpponentProfile",
+      "type": "object",
+      "description": "Represents an AI opponent's profile, including its name and skill level.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AiOpponentProfile entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the AI opponent."
+        },
+        "skillLevel": {
+          "type": "string",
+          "description": "The skill level of the AI opponent (e.g., Beginner, Intermediate, Advanced)."
+        },
+        "preferredVariant": {
+          "type": "string",
+          "description": "The preferred poker variant that AI would want to play."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "skillLevel"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile data. Uses path-based ownership for simplified security rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Stores transaction data for a specific user. Nested under the user's profile to establish ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "transactionId",
+              "description": "The unique identifier for the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/pokerGames/{pokerGameId}",
+        "definition": {
+          "entityName": "PokerGame",
+          "schema": {
+            "$ref": "#/backend/entities/PokerGame"
+          },
+          "description": "Stores poker game data. Games do not have a single owner so are stored at the top level.",
+          "params": [
+            {
+              "name": "pokerGameId",
+              "description": "The unique identifier for the poker game."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/aiOpponentProfiles/{aiOpponentProfileId}",
+        "definition": {
+          "entityName": "AiOpponentProfile",
+          "schema": {
+            "$ref": "#/backend/entities/AiOpponentProfile"
+          },
+          "description": "Stores AI opponent profiles. They are not tied to a specific user.",
+          "params": [
+            {
+              "name": "aiOpponentProfileId",
+              "description": "The unique identifier for the AI opponent profile."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to ensure security, scalability, and ease of debugging, adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-based Access Control), and QAPs (Rules are not Filters). Authorization independence is achieved through denormalization. For instance, any data requiring user-specific access is nested under `/users/{userId}` to leverage path-based rules, ensuring direct ownership without requiring `get()` calls to parent documents. This structure supports secure `list` operations by segregating data based on access needs. The `UserProfile` is stored directly under `/users/{userId}`, allowing straightforward access control. Transactions associated with a user are nested under the user's profile at `/users/{userId}/transactions/{transactionId}`, maintaining a clear ownership structure. Poker games, which involve multiple users, do not have a single owner, and therefore are stored at the top level collection `/pokerGames`. AI opponent profiles are stored at `/aiOpponentProfiles` since they are not tied to particular users. This segregation ensures that security rules can be applied uniformly across each collection, simplifying rule management and enhancing security. The structure avoids custom claims by relying on the existence of the user ID from `request.auth.uid` to control access."
+  }
+}
