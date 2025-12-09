@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CreateGameForm } from "@/components/create-game-form";
 import { AIVariantSuggester } from "@/components/ai-variant-suggester";
 import { AIOpponentGame } from "@/components/ai-opponent-game";
+import { Separator } from "@/components/ui/separator";
 
 const gameTypes = [
   { id: "all", name: "Tous les jeux", icon: Spade },
@@ -126,16 +127,7 @@ function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveForm
 
   return (
     <aside className="w-full lg:w-64 bg-card p-4 rounded-lg flex-shrink-0 self-start space-y-6">
-      <div className="space-y-2">
-        <Button size="lg" className="w-full font-bold" onClick={() => setOpenCreateGame(true)}>
-            <Gamepad2 className="mr-2"/>
-            Créer une table
-        </Button>
-        <Button size="lg" variant="outline" className="w-full font-bold" onClick={() => setOpenAiTools(true)}>
-            <Wand2 className="mr-2"/>
-            Outils IA
-        </Button>
-      </div>
+      
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-3">TYPE DE JEU</h3>
         <div className="space-y-1">
@@ -170,6 +162,19 @@ function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveForm
         <RefreshCw className="mr-2 h-4 w-4" />
         Réinitialiser
       </Button>
+
+      <Separator />
+
+      <div className="space-y-2">
+        <Button size="lg" className="w-full font-bold" onClick={() => setOpenCreateGame(true)}>
+            <Gamepad2 className="mr-2"/>
+            Créer une table
+        </Button>
+        <Button size="lg" variant="outline" className="w-full font-bold" onClick={() => setOpenAiTools(true)}>
+            <Wand2 className="mr-2"/>
+            Outils IA
+        </Button>
+      </div>
     </aside>
   );
 }
