@@ -5,13 +5,15 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Game } from "@/lib/types";
-import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Droplets, Rabbit, Plus, Gamepad2 } from "lucide-react";
+import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Droplets, Rabbit, Plus, Gamepad2, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { collection, Query } from "firebase/firestore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CreateGameForm } from "@/components/create-game-form";
+import { AIVariantSuggester } from "@/components/ai-variant-suggester";
+import { AIOpponentGame } from "@/components/ai-opponent-game";
 
 const gameTypes = [
   { id: "all", name: "Tous les jeux", icon: Spade },
@@ -270,6 +272,19 @@ export default function LobbyPage() {
                   <Spade size={150} className="text-primary" />
               </div>
           </div>
+          
+          {/* AI Tools */}
+            <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                    <Wand2 className="text-primary" />
+                    <h2 className="text-2xl font-bold">Outils IA</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <AIVariantSuggester />
+                    <AIOpponentGame />
+                </div>
+            </div>
+
 
           {/* Game Tables */}
           <div>
@@ -305,3 +320,5 @@ export default function LobbyPage() {
     </div>
   );
 }
+
+    
