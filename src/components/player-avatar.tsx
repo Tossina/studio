@@ -36,7 +36,7 @@ export function PlayerAvatar({ player }: PlayerAvatarProps) {
 
       <div className="text-center bg-black/50 px-3 py-1.5 rounded-md w-full relative -mt-2">
         <p className="font-semibold text-sm truncate text-white">{player.name}</p>
-        <p className="text-amber-400 font-bold text-xs">{player.stack.toLocaleString()} Ar</p>
+        <p className="text-amber-400 font-bold text-xs">{player.stack.toLocaleString('fr-FR')} Ar</p>
       </div>
 
        {actionText && (

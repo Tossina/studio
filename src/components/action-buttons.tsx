@@ -45,7 +45,7 @@ export function ActionButtons({ playerStack, currentBet, minRaise }: ActionButto
                 <div className="relative">
                      <Button className="w-48 h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground flex flex-col items-center justify-center leading-tight">
                         <span>Raise</span>
-                        <span className="text-sm font-normal">to {raiseAmount.toLocaleString()} Ar</span>
+                        <span className="text-sm font-normal">to {raiseAmount.toLocaleString('fr-FR')} Ar</span>
                     </Button>
                 </div>
             </div>

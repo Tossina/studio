@@ -57,7 +57,7 @@ export function PokerTable({ players, communityCards, pot }: PokerTableProps) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4">
             <div className="bg-black/30 backdrop-blur-sm px-4 py-1 rounded-full">
                 <p className="text-sm font-semibold text-muted-foreground">
-                  POT TOTAL : <span className="font-bold text-lg text-primary">{pot.toLocaleString()} Ar</span>
+                  POT TOTAL : <span className="font-bold text-lg text-primary">{pot.toLocaleString('fr-FR')} Ar</span>
                 </p>
             </div>
             <div className="flex gap-2">
