@@ -1,13 +1,31 @@
+'use client';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useUser } from "@/firebase";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
-    const userAvatar = PlaceHolderImages.find((img) => img.id === "avatar-1");
+    const { user, isUserLoading } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.push('/login');
+        }
+    }, [user, isUserLoading, router]);
+
+    if (isUserLoading || !user) {
+        return (
+            <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+                <Loader2 className="w-16 h-16 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto py-8">
@@ -17,10 +35,10 @@ export default function ProfilePage() {
                     <Card>
                         <CardHeader className="items-center text-center">
                             <Avatar className="w-24 h-24 mb-4">
-                                {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="PlayerOne" />}
-                                <AvatarFallback>P1</AvatarFallback>
+                                {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
+                                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                             </Avatar>
-                            <CardTitle>PlayerOne</CardTitle>
+                            <CardTitle>{user.displayName || 'PlayerOne'}</CardTitle>
                             <CardDescription>$1,250.00</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -37,11 +55,11 @@ export default function ProfilePage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="username">Username</Label>
-                                <Input id="username" defaultValue="PlayerOne" />
+                                <Input id="username" defaultValue={user.displayName || "PlayerOne"} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" defaultValue="player@example.com" />
+                                <Input id="email" type="email" defaultValue={user.email || ""} readOnly />
                             </div>
                             <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Save Changes</Button>
                         </CardContent>

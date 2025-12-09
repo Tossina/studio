@@ -1,3 +1,4 @@
+'use client';
 import { AIVariantSuggester } from "@/components/ai-variant-suggester";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,9 +10,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUser } from "@/firebase";
 import { mockGames } from "@/lib/mock-data";
 import { Game, GameFormat, GameVariant } from "@/lib/types";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 const gameVariants: GameVariant[] = ["Texas Hold'em", "Omaha", "Stud", "Draw"];
 const gameFormats: GameFormat[] = ["Cash Game", "MTT", "Sit & Go", "Fast Poker"];
@@ -50,6 +55,23 @@ function GameList({ games }: { games: Game[] }) {
 }
 
 export default function LobbyPage() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push("/");
+    }
+  }, [user, isUserLoading, router]);
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <Loader2 className="w-16 h-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col lg:flex-row gap-8">
