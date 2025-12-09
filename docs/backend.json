@@ -32,13 +32,18 @@
         "preferredCurrency": {
           "type": "string",
           "description": "The user's preferred currency for transactions."
+        },
+        "balance": {
+          "type": "number",
+          "description": "The user's current account balance in Ariary."
         }
       },
       "required": [
         "id",
         "username",
         "email",
-        "registrationDate"
+        "registrationDate",
+        "balance"
       ]
     },
     "Transaction": {
@@ -103,7 +108,7 @@
         },
         "gameFormat": {
           "type": "string",
-          "description": "The format of the game (e.g., Cash Game, MTT, Sit & Go)."
+          "description": "The format of the game (eg., Cash Game, MTT, Sit & Go)."
         },
         "startTime": {
           "type": "string",

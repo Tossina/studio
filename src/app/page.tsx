@@ -76,11 +76,8 @@ export default function Home() {
   useEffect(() => {
     if (!auth) return;
 
-    const unsubscribe = onAuthStateChanged(auth, async (newUser, error) => {
-        if (error) {
-            setAuthLoading(false);
-            setAuthError(error.message);
-        } else if (newUser && pendingSignupData) {
+    const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
+        if (newUser && pendingSignupData) {
             const { firestore } = initializeFirebase();
             const userRef = doc(firestore, "users", newUser.uid);
             const userDoc = await getDoc(userRef);
@@ -91,6 +88,7 @@ export default function Home() {
                     username: pendingSignupData.username,
                     email: newUser.email,
                     registrationDate: new Date().toISOString(),
+                    balance: 0, // Starting balance
                 };
                 await setDocumentNonBlocking(userRef, userProfile);
                 await sendEmailVerification(newUser);
@@ -102,8 +100,28 @@ export default function Home() {
         } else if (newUser) {
             setAuthLoading(false);
             setAuthError(null);
+             if (newUser.emailVerified) {
+                router.push('/lobby');
+            }
         } else {
              setAuthLoading(false);
+        }
+    }, (error) => {
+        setAuthLoading(false);
+        // Map Firebase error codes to user-friendly messages
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                setAuthError("Cette adresse e-mail est déjà utilisée par un autre compte.");
+                break;
+            case 'auth/wrong-password':
+                setAuthError("Mot de passe incorrect. Veuillez réessayer.");
+                break;
+            case 'auth/user-not-found':
+                setAuthError("Aucun compte trouvé avec cette adresse e-mail.");
+                break;
+            default:
+                setAuthError("Une erreur d'authentification est survenue. Veuillez réessayer.");
+                break;
         }
     });
 

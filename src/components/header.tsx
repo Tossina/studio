@@ -1,18 +1,31 @@
 'use client';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Gem, LogOut, Search, Wallet } from "lucide-react";
-import { useAuth, useUser } from "@/firebase";
+import { Gem, LogOut, Search, Wallet, Loader2 } from "lucide-react";
+import { useAuth, useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Input } from "./ui/input";
+import { doc } from "firebase/firestore";
 
 export function Header() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
+
+  const userProfileRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ balance: number }>(userProfileRef);
 
   const handleSignOut = () => {
-    auth.signOut();
+    if(auth) {
+      auth.signOut();
+    }
   };
+
+  const balance = userProfile?.balance ?? 0;
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur border-b border-border/40">
@@ -65,7 +78,11 @@ export function Header() {
               <>
                 <div className="text-right">
                     <p className="text-xs text-muted-foreground">SOLDE</p>
-                    <p className="font-bold text-lg">250 000 Ar</p>
+                    {isProfileLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin"/>
+                    ) : (
+                      <p className="font-bold text-lg">{balance.toLocaleString('fr-FR')} Ar</p>
+                    )}
                 </div>
                  <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
                   <Link href="/cashier"><Wallet className="mr-2 h-4 w-4" /> Dépôt</Link>
@@ -74,7 +91,7 @@ export function Header() {
                 <Button variant="ghost" size="icon" asChild>
                   <Link href="/profile">
                     <Avatar className="h-10 w-10 border-2 border-primary">
-                      <AvatarImage src={user.photoURL || undefined} />
+                      {user.photoURL && <AvatarImage src={user.photoURL} />}
                       <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                     </Avatar>
                   </Link>
