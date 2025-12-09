@@ -183,7 +183,6 @@ export default function CashierPage() {
                             <SelectItem value="OrangeMoney">Orange Money</SelectItem>
                             <SelectItem value="AirtelMoney">Airtel Money</SelectItem>
                             <SelectItem value="Carte">Carte de crédit/débit</SelectItem>
-                            <SelectItem value="Virement">Virement bancaire</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -241,7 +240,6 @@ export default function CashierPage() {
                             <SelectItem value="Mvola">Mvola</SelectItem>
                             <SelectItem value="OrangeMoney">Orange Money</SelectItem>
                             <SelectItem value="AirtelMoney">Airtel Money</SelectItem>
-                            <SelectItem value="Virement">Virement bancaire</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -276,5 +274,7 @@ export default function CashierPage() {
     </div>
   );
 }
+
+    
 
     
