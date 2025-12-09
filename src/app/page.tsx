@@ -14,21 +14,32 @@ import { useAuth, useUser, setDocumentNonBlocking } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
 import { Loader2 } from "lucide-react";
-import { User, onAuthStateChanged, getAuth } from "firebase/auth";
+import { User, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Adresse e-mail invalide" }),
-  password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" }),
+  password: z.string().min(1, { message: "Le mot de passe est requis" }),
 });
 
 const SignupSchema = z.object({
   username: z.string().min(3, { message: "Le nom d'utilisateur doit contenir au moins 3 caractères" }),
   email: z.string().email({ message: "Adresse e-mail invalide" }),
-  password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" }),
+  password: z.string()
+    .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères" })
+    .regex(/[a-z]/, { message: "Doit contenir au moins une minuscule" })
+    .regex(/[A-Z]/, { message: "Doit contenir au moins une majuscule" })
+    .regex(/[0-9]/, { message: "Doit contenir au moins un chiffre" })
+    .regex(/[^a-zA-Z0-9]/, { message: "Doit contenir au moins un caractère spécial" }),
+  confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
 });
+
 
 type LoginInputs = z.infer<typeof LoginSchema>;
 type SignupInputs = z.infer<typeof SignupSchema>;
@@ -36,11 +47,13 @@ type SignupInputs = z.infer<typeof SignupSchema>;
 
 export default function Home() {
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [authLoading, setAuthLoading] = useState(false);
-  const [pendingSignupData, setPendingSignupData] = useState<Omit<SignupInputs, 'password'> | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [pendingSignupData, setPendingSignupData] = useState<Omit<SignupInputs, 'password' | 'confirmPassword'> | null>(null);
 
   const { register: registerLogin, handleSubmit: handleSubmitLogin, formState: { errors: loginErrors } } = useForm<LoginInputs>({
     resolver: zodResolver(LoginSchema),
@@ -51,10 +64,19 @@ export default function Home() {
   });
   
   useEffect(() => {
+    if (user && !isUserLoading) {
+      router.push('/lobby');
+    }
+  }, [user, isUserLoading, router]);
+
+  useEffect(() => {
     if (!auth) return;
 
-    const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
-        if (newUser && pendingSignupData) {
+    const unsubscribe = onAuthStateChanged(auth, async (newUser, error) => {
+        if (error) {
+            setAuthLoading(false);
+            setAuthError(error.message);
+        } else if (newUser && pendingSignupData) {
             const { firestore } = initializeFirebase();
             const userRef = doc(firestore, "users", newUser.uid);
             const userDoc = await getDoc(userRef);
@@ -70,10 +92,12 @@ export default function Home() {
             }
             setPendingSignupData(null); 
             setAuthLoading(false);
-            router.push('/lobby');
+            setAuthError(null);
+            // router.push('/lobby') is handled by the other useEffect
         } else if (newUser) {
             setAuthLoading(false);
-            router.push('/lobby');
+            setAuthError(null);
+             // router.push('/lobby') is handled by the other useEffect
         } else {
              setAuthLoading(false);
         }
@@ -83,12 +107,16 @@ export default function Home() {
   }, [auth, pendingSignupData, router]);
 
   const onLogin: SubmitHandler<LoginInputs> = (data) => {
+    if (!auth) return;
     setAuthLoading(true);
+    setAuthError(null);
     initiateEmailSignIn(auth, data.email, data.password);
   };
 
   const onSignup: SubmitHandler<SignupInputs> = (data) => {
+    if (!auth) return;
     setAuthLoading(true);
+    setAuthError(null);
     setPendingSignupData({ username: data.username, email: data.email });
     initiateEmailSignUp(auth, data.email, data.password);
   };
@@ -148,6 +176,12 @@ export default function Home() {
                             <p className="text-muted-foreground">Connectez-vous pour rejoindre une table.</p>
                         </div>
                         <form className="space-y-4" onSubmit={handleSubmitLogin(onLogin)}>
+                            {authError && (
+                                <Alert variant="destructive">
+                                    <AlertTitle>Erreur de connexion</AlertTitle>
+                                    <AlertDescription>{authError}</AlertDescription>
+                                </Alert>
+                            )}
                              <div className="space-y-2">
                                 <Label htmlFor="login-email">ADRESSE E-MAIL</Label>
                                 <div className="relative">
@@ -192,10 +226,16 @@ export default function Home() {
                 <TabsContent value="inscription">
                      <div className="bg-card p-8 rounded-b-lg border-x-2 border-b-2 border-border">
                        <div className="text-center mb-6">
-                            <h2 className="text-2xl font-bold">Créer un compte</h2>
-                            <p className="text-muted-foreground">Rejoignez-nous aujourd'hui !</p>
+                            <h2 className="text-2xl font-bold">Créer un compte sécurisé</h2>
+                            <p className="text-muted-foreground">Rejoignez-nous aujourd'hui ! C'est rapide et sûr.</p>
                         </div>
                         <form className="space-y-4" onSubmit={handleSubmitSignup(onSignup)}>
+                             {authError && (
+                                <Alert variant="destructive">
+                                    <AlertTitle>Erreur d'inscription</AlertTitle>
+                                    <AlertDescription>{authError}</AlertDescription>
+                                </Alert>
+                            )}
                              <div className="space-y-2">
                                 <Label htmlFor="signup-username">NOM D'UTILISATEUR</Label>
                                  <div className="relative">
@@ -216,12 +256,26 @@ export default function Home() {
                                 <Label htmlFor="signup-password">MOT DE PASSE</Label>
                                 <div className="relative">
                                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                    <Input id="signup-password" type="password" {...registerSignup("password")} className="pl-10" />
+                                    <Input id="signup-password" type={passwordVisible ? "text" : "password"} {...registerSignup("password")} className="pl-10 pr-10" />
+                                    <button type="button" onClick={() => setPasswordVisible(!passwordVisible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                        {passwordVisible ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
+                                    </button>
                                 </div>
                                 {signupErrors.password && <p className="text-destructive text-sm">{signupErrors.password.message}</p>}
                             </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="signup-confirm-password">CONFIRMER LE MOT DE PASSE</Label>
+                                <div className="relative">
+                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input id="signup-confirm-password" type={confirmPasswordVisible ? "text" : "password"} {...registerSignup("confirmPassword")} className="pl-10 pr-10" />
+                                    <button type="button" onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                                        {confirmPasswordVisible ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
+                                    </button>
+                                </div>
+                                {signupErrors.confirmPassword && <p className="text-destructive text-sm">{signupErrors.confirmPassword.message}</p>}
+                            </div>
                             <Button type="submit" disabled={authLoading} className="w-full !mt-6 bg-primary text-primary-foreground text-lg font-bold h-12 group">
-                                {authLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'S\'inscrire'}
+                                {authLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Créer mon compte"}
                                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"/>
                             </Button>
                         </form>
@@ -235,3 +289,5 @@ export default function Home() {
     </div>
   );
 }
+
+    
