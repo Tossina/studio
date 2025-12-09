@@ -10,7 +10,7 @@ import { mockPlayers } from "@/lib/mock-data";
 import { Clock, History, Loader2 } from "lucide-react";
 
 export default function PlayPage({ params }: { params: { tableId: string } }) {
-  const { tableId } = params;
+  const tableId = params.tableId;
   const heroPlayer = mockPlayers.find(p => p.name.includes('Hero'));
   const communityCards = ["A♥", "T♦", "J♣", "K♣", "Q♠"]
 
