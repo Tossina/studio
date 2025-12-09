@@ -9,8 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { mockPlayers } from "@/lib/mock-data";
 import { Clock, History, Loader2 } from "lucide-react";
 
-export default function PlayPage({ params }: { params: { tableId: string } }) {
-  const tableId = params.tableId;
+export default function PlayPage({ params: { tableId } }: { params: { tableId: string } }) {
   const heroPlayer = mockPlayers.find(p => p.name.includes('Hero'));
   const communityCards = ["A♥", "T♦", "J♣", "K♣", "Q♠"]
 
