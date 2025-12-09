@@ -4,16 +4,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowRight, Eye, EyeOff, Landmark, Lock, Mail, ShieldCheck } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Landmark, Lock, Mail, ShieldCheck, User as UserIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth, useUser } from "@/firebase";
+import { useAuth, useUser, setDocumentNonBlocking } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
 import { Loader2 } from "lucide-react";
+import { User, onAuthStateChanged, getAuth } from "firebase/auth";
+import { doc, getDoc, getFirestore } from "firebase/firestore";
+import { initializeFirebase } from "@/firebase";
+
 
 const LoginSchema = z.object({
   email: z.string().email({ message: "Adresse e-mail invalide" }),
@@ -21,6 +25,7 @@ const LoginSchema = z.object({
 });
 
 const SignupSchema = z.object({
+  username: z.string().min(3, { message: "Le nom d'utilisateur doit contenir au moins 3 caractères" }),
   email: z.string().email({ message: "Adresse e-mail invalide" }),
   password: z.string().min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" }),
 });
@@ -35,6 +40,7 @@ export default function Home() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [authLoading, setAuthLoading] = useState(false);
+  const [pendingSignupData, setPendingSignupData] = useState<Omit<SignupInputs, 'password'> | null>(null);
 
   const { register: registerLogin, handleSubmit: handleSubmitLogin, formState: { errors: loginErrors } } = useForm<LoginInputs>({
     resolver: zodResolver(LoginSchema),
@@ -43,12 +49,38 @@ export default function Home() {
   const { register: registerSignup, handleSubmit: handleSubmitSignup, formState: { errors: signupErrors } } = useForm<SignupInputs>({
     resolver: zodResolver(SignupSchema),
   });
-
+  
   useEffect(() => {
-    if (!isUserLoading && user) {
-      router.push('/lobby');
-    }
-  }, [user, isUserLoading, router]);
+    if (!auth) return;
+
+    const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
+        if (newUser && pendingSignupData) {
+            const { firestore } = initializeFirebase();
+            const userRef = doc(firestore, "users", newUser.uid);
+            const userDoc = await getDoc(userRef);
+
+            if (!userDoc.exists()) {
+                const userProfile = {
+                    id: newUser.uid,
+                    username: pendingSignupData.username,
+                    email: newUser.email,
+                    registrationDate: new Date().toISOString(),
+                };
+                setDocumentNonBlocking(userRef, userProfile);
+            }
+            setPendingSignupData(null); 
+            setAuthLoading(false);
+            router.push('/lobby');
+        } else if (newUser) {
+            setAuthLoading(false);
+            router.push('/lobby');
+        } else {
+             setAuthLoading(false);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [auth, pendingSignupData, router]);
 
   const onLogin: SubmitHandler<LoginInputs> = (data) => {
     setAuthLoading(true);
@@ -57,6 +89,7 @@ export default function Home() {
 
   const onSignup: SubmitHandler<SignupInputs> = (data) => {
     setAuthLoading(true);
+    setPendingSignupData({ username: data.username, email: data.email });
     initiateEmailSignUp(auth, data.email, data.password);
   };
 
@@ -163,14 +196,28 @@ export default function Home() {
                             <p className="text-muted-foreground">Rejoignez-nous aujourd'hui !</p>
                         </div>
                         <form className="space-y-4" onSubmit={handleSubmitSignup(onSignup)}>
+                             <div className="space-y-2">
+                                <Label htmlFor="signup-username">NOM D'UTILISATEUR</Label>
+                                 <div className="relative">
+                                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input id="signup-username" placeholder="ex: RaryGasy" {...registerSignup("username")} className="pl-10" />
+                                </div>
+                                {signupErrors.username && <p className="text-destructive text-sm">{signupErrors.username.message}</p>}
+                            </div>
                             <div className="space-y-2">
                                 <Label htmlFor="signup-email">ADRESSE E-MAIL</Label>
-                                <Input id="signup-email" type="email" placeholder="ex: patrick@gmail.com" {...registerSignup("email")} />
+                                 <div className="relative">
+                                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input id="signup-email" type="email" placeholder="ex: patrick@gmail.com" {...registerSignup("email")} className="pl-10" />
+                                </div>
                                 {signupErrors.email && <p className="text-destructive text-sm">{signupErrors.email.message}</p>}
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="signup-password">MOT DE PASSE</Label>
-                                <Input id="signup-password" type="password" {...registerSignup("password")} />
+                                <div className="relative">
+                                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                    <Input id="signup-password" type="password" {...registerSignup("password")} className="pl-10" />
+                                </div>
                                 {signupErrors.password && <p className="text-destructive text-sm">{signupErrors.password.message}</p>}
                             </div>
                             <Button type="submit" disabled={authLoading} className="w-full !mt-6 bg-primary text-primary-foreground text-lg font-bold h-12 group">
