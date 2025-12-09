@@ -97,7 +97,7 @@ export default function VerifyEmailPage() {
             <span className="font-bold text-foreground">{user.email}</span>.
             <br/>
             Veuillez cliquer sur le lien dans cet e-mail pour continuer.
-          </d_CardDescription>
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             <Button
