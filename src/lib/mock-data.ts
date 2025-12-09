@@ -26,17 +26,34 @@ export const mockGames: Game[] = Array.from({ length: 20 }, (_, i) => {
 });
 
 
-const avatarIds = ['avatar-1', 'avatar-2', 'avatar-3', 'avatar-4', 'avatar-5', 'avatar-6'];
+const avatarIds = ['avatar-1', 'avatar-2', 'avatar-3', 'avatar-4', 'avatar-5', 'avatar-6', 'avatar-1', 'avatar-2', 'avatar-3'];
 
-export const mockPlayers: Player[] = Array.from({ length: 6 }, (_, i) => ({
-    id: `player-${i + 1}`,
-    name: `Player ${i + 1}`,
-    avatarUrl: PlaceHolderImages.find(img => img.id === avatarIds[i])?.imageUrl || '',
-    stack: Math.floor(Math.random() * 1000) + 500,
-    isDealer: i === 0,
-    isTurn: i === 3,
-    cards: i === 2 ? ['As', 'Ks'] : null, // Only show cards for our hero player
-    position: i + 1,
-    action: i === 1 ? 'bet' : null,
-    betAmount: i === 1 ? 50 : 0,
-}));
+export const mockPlayers: Player[] = [
+  { id: 'player-1', name: 'Rary', avatarUrl: PlaceHolderImages.find(p => p.id === avatarIds[0])?.imageUrl || '', stack: 12500, isDealer: false, isTurn: false, cards: null, position: 2, action: 'bet', betAmount: 1000 },
+  { id: 'player-2', name: 'Hery', avatarUrl: PlaceHolderImages.find(p => p.id === avatarIds[1])?.imageUrl || '', stack: 0, isDealer: false, isTurn: false, cards: null, position: 3, action: 'fold', betAmount: 0 },
+  { id: 'player-3', name: 'Soa', avatarUrl: PlaceHolderImages.find(p => p.id === avatarIds[2])?.imageUrl || '', stack: 18200, isDealer: false, isTurn: true, cards: null, position: 5, action: null, betAmount: 0 },
+  { id: 'player-4', name: 'Faly', avatarUrl: PlaceHolderImages.find(p => p.id === avatarIds[3])?.imageUrl || '', stack: 8000, isDealer: true, isTurn: false, cards: null, position: 7, action: null, betAmount: 0 },
+  { id: 'player-5', name: 'Hero (Moi)', avatarUrl: PlaceHolderImages.find(p => p.id === avatarIds[4])?.imageUrl || '', stack: 25400, isDealer: false, isTurn: false, cards: ['A♥', 'K♦'], position: 8, action: 'call', betAmount: 1000 },
+]
+
+// Add empty seats
+const totalSeats = 9;
+const seatedPlayerPositions = new Set(mockPlayers.map(p => p.position));
+for (let i = 1; i <= totalSeats; i++) {
+    if (!seatedPlayerPositions.has(i)) {
+        mockPlayers.push({
+            id: `empty-${i}`,
+            name: 'Siège vide',
+            avatarUrl: '',
+            stack: 0,
+            isDealer: false,
+            isTurn: false,
+            cards: null,
+            position: i,
+            action: null,
+            betAmount: 0,
+        });
+    }
+}
+
+mockPlayers.sort((a, b) => a.position - b.position);

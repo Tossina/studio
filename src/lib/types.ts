@@ -7,7 +7,7 @@ export type Player = {
   isTurn: boolean;
   cards: [string, string] | null;
   position: number; // Seat number
-  action: 'bet' | 'check' | 'fold' | null;
+  action: 'bet' | 'check' | 'fold' | 'raise' | 'call' | null;
   betAmount: number;
 };
 
