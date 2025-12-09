@@ -31,6 +31,7 @@ const gameFormats = [
 const stakeLevels = ["Tous", "Micro", "Basse", "Moyenne", "Haute"];
 
 function getPlayerCount(players: Player[]): number {
+    if (!Array.isArray(players)) return 0;
     return players.filter(p => p.id && !p.id.startsWith('empty-')).length;
 }
 
