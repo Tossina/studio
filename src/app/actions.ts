@@ -2,6 +2,9 @@
 
 import { getAiPokerMove, PokerDecisionInput } from "@/ai/flows/ai-opponent";
 import { chooseVariant, ChooseVariantInput } from "@/ai/flows/choose-variant";
+import { Game } from "@/lib/types";
+import { addDoc, collection, getFirestore } from "firebase/firestore";
+import { initializeFirebase } from "@/firebase";
 
 export async function suggestVariantAction(input: ChooseVariantInput) {
   try {

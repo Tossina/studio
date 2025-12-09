@@ -28,4 +28,6 @@ export type Game = {
   buyIn?: number;
   prizePool?: number;
   status?: 'EN COURS' | 'TARDIF' | 'INSCRIPTION';
+  playerIds: string[];
+  startTime: string;
 };

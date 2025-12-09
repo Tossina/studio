@@ -5,11 +5,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Game } from "@/lib/types";
-import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Droplets, Rabbit, Plus } from "lucide-react";
+import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Droplets, Rabbit, Plus, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
-import { collection, query, where, Query } from "firebase/firestore";
+import { collection, Query } from "firebase/firestore";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CreateGameForm } from "@/components/create-game-form";
 
 const gameTypes = [
   { id: "all", name: "Tous les jeux", icon: Spade },
@@ -105,10 +107,11 @@ interface FilterSidebarProps {
   activeFormats: string[];
   setActiveFormats: (formats: string[]) => void;
   resetFilters: () => void;
+  setOpenCreateGame: (open: boolean) => void;
 }
 
 
-function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveFormats, resetFilters }: FilterSidebarProps) {
+function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveFormats, resetFilters, setOpenCreateGame }: FilterSidebarProps) {
   
   const handleFormatChange = (checked: boolean | string, format: string) => {
     if (checked) {
@@ -120,6 +123,10 @@ function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveForm
 
   return (
     <aside className="w-full lg:w-64 bg-card p-4 rounded-lg flex-shrink-0 self-start space-y-6">
+      <Button size="lg" className="w-full font-bold" onClick={() => setOpenCreateGame(true)}>
+          <Gamepad2 className="mr-2"/>
+          Créer une table
+      </Button>
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-3">TYPE DE JEU</h3>
         <div className="space-y-1">
@@ -163,12 +170,14 @@ export default function LobbyPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
+  const [openCreateGame, setOpenCreateGame] = useState(false);
 
   const [activeStake, setActiveStake] = useState("Tous");
   const [activeType, setActiveType] = useState('all');
-  const [activeFormats, setActiveFormats] = useState<string[]>(['Cash Game', 'Sit & Go', 'MTT']);
+  const [activeFormats, setActiveFormats] = useState<string[]>([]);
 
   const gamesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
     return collection(firestore, 'pokerGames') as Query<Game>;
   }, [firestore]);
 
@@ -177,7 +186,7 @@ export default function LobbyPage() {
   const resetFilters = () => {
     setActiveStake("Tous");
     setActiveType("all");
-    setActiveFormats(['Cash Game', 'Sit & Go', 'MTT']);
+    setActiveFormats([]);
   }
 
   const filteredGames = useMemo(() => {
@@ -188,14 +197,14 @@ export default function LobbyPage() {
       tempGames = tempGames.filter(game => game.gameVariant === activeType);
     }
 
-    if (activeFormats.length > 0 && activeFormats.length < gameFormats.length) {
+    if (activeFormats.length > 0) {
         tempGames = tempGames.filter(game => activeFormats.includes(game.gameFormat));
     }
     
     if (activeStake !== 'Tous') {
       tempGames = tempGames.filter(g => {
         const stakeUpper = parseInt(g.stakes.split('/')[1]?.replace(' Ar', ''));
-        if (isNaN(stakeUpper)) return false; // Or handle cases where stakes format is different
+        if (isNaN(stakeUpper)) return false; 
         
         switch (activeStake) {
           case 'Micro': return stakeUpper <= 50;
@@ -216,7 +225,7 @@ export default function LobbyPage() {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !user || gamesLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <Loader2 className="w-16 h-16 animate-spin text-primary" />
@@ -226,6 +235,14 @@ export default function LobbyPage() {
 
   return (
     <div className="container mx-auto py-8">
+      <Dialog open={openCreateGame} onOpenChange={setOpenCreateGame}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Créer une nouvelle table</DialogTitle>
+            </DialogHeader>
+            <CreateGameForm setOpen={setOpenCreateGame} />
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-col lg:flex-row gap-8">
         <FilterSidebar 
           activeType={activeType}
@@ -233,6 +250,7 @@ export default function LobbyPage() {
           activeFormats={activeFormats}
           setActiveFormats={setActiveFormats}
           resetFilters={resetFilters}
+          setOpenCreateGame={setOpenCreateGame}
         />
         <div className="flex-1">
           {/* Featured Event */}
@@ -264,15 +282,23 @@ export default function LobbyPage() {
             </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filteredGames.map((game) => (
-                    <GameCard key={game.id} game={game} />
-                ))}
+                {gamesLoading ? (
+                  Array.from({length: 6}).map((_, i) => (
+                    <Card key={i} className="p-4 space-y-4 bg-card/80 border-border animate-pulse">
+                      <div className="h-24 bg-muted rounded-md"></div>
+                    </Card>
+                  ))
+                ) : filteredGames.length > 0 ? (
+                    filteredGames.map((game) => (
+                        <GameCard key={game.id} game={game} />
+                    ))
+                ) : (
+                    <div className="text-center py-16 text-muted-foreground md:col-span-2 xl:col-span-3">
+                        <p>Aucun jeu ne correspond à vos filtres.</p>
+                        <p className="text-sm">Essayez d'en créer un nouveau !</p>
+                    </div>
+                )}
              </div>
-             {filteredGames.length === 0 && (
-                <div className="text-center py-16 text-muted-foreground">
-                    <p>Aucun jeu ne correspond à vos filtres.</p>
-                </div>
-             )}
           </div>
         </div>
       </div>
