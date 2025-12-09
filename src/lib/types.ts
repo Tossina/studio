@@ -9,11 +9,14 @@ export type Player = {
   position: number; // Seat number
   action: 'bet' | 'check' | 'fold' | 'raise' | 'call' | null;
   betAmount: number;
+  handRank?: string;
 };
 
 export type GameVariant = "Texas Hold'em" | 'Omaha' | 'Stud' | 'Draw';
 
 export type GameFormat = 'Cash Game' | 'MTT' | 'Sit & Go';
+
+export type GamePhase = 'pre-flop' | 'flop' | 'turn' | 'river' | 'showdown';
 
 export type Game = {
   id: string;
@@ -21,7 +24,7 @@ export type Game = {
   gameVariant: GameVariant;
   gameFormat: GameFormat;
   stakes: string;
-  players: number;
+  players: Player[]; // Changed from number to Player[]
   maxPlayers: number;
   limit?: string;
   subVariant?: 'Rapide' | 'Hyper' | 'Deepstack' | 'Regular';
@@ -30,4 +33,9 @@ export type Game = {
   status?: 'EN COURS' | 'TARDIF' | 'INSCRIPTION';
   playerIds: string[];
   startTime: string;
+  communityCards: string[];
+  pot: number;
+  currentPlayerId: string;
+  gamePhase: GamePhase;
+  dealerPosition: number;
 };

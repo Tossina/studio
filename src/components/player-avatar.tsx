@@ -10,13 +10,35 @@ interface PlayerAvatarProps {
 export function PlayerAvatar({ player }: PlayerAvatarProps) {
 
   const getActionText = () => {
-    if (player.action === 'fold') return 'Fold';
+    if (player.action === 'fold') return 'Couché';
     if (player.isTurn) return 'Réfléchit...';
-    if (player.action) return `${player.action.charAt(0).toUpperCase() + player.action.slice(1)} ${player.betAmount > 0 ? player.betAmount : ''}`.trim();
+    if (player.action === 'check') return 'Check';
+    if (player.action === 'call') return `Suit ${player.betAmount > 0 ? player.betAmount : ''}`.trim();
+    if (player.action === 'bet') return `Mise ${player.betAmount > 0 ? player.betAmount : ''}`.trim();
+    if (player.action === 'raise') return `Relance ${player.betAmount > 0 ? player.betAmount : ''}`.trim();
     return null;
   }
   
   const actionText = getActionText();
+
+  // If player name is "Siège vide", render a placeholder
+  if (player.name === 'Siège vide') {
+    return (
+       <div className={cn(
+        "flex flex-col items-center gap-1.5 relative w-28 transition-all duration-300 group",
+      )}>
+         <div className="relative">
+          <Avatar className={cn("h-16 w-16 bg-muted/20 border-2 border-dashed border-border/50")}>
+            <AvatarFallback className="bg-transparent text-muted-foreground text-xs">Vide</AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="text-center bg-black/30 px-3 py-1.5 rounded-md w-full relative -mt-2">
+            <p className="font-semibold text-sm truncate text-muted-foreground">{player.name}</p>
+            <p className="text-amber-400 font-bold text-xs opacity-0">0 Ar</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn(
@@ -25,7 +47,7 @@ export function PlayerAvatar({ player }: PlayerAvatarProps) {
       )}>
       
       <div className="relative">
-        <Avatar className={cn("h-16 w-16 bg-muted", player.isTurn ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'ring-2 ring-border')}>
+        <Avatar className={cn("h-16 w-16 bg-muted", player.isTurn ? 'ring-4 ring-primary ring-offset-2 ring-offset-background' : 'ring-2 ring-border')}>
           <AvatarImage src={player.avatarUrl} alt={player.name} />
           <AvatarFallback>{player.name.substring(0, 2)}</AvatarFallback>
         </Avatar>

@@ -6,19 +6,42 @@ import { PokerTable } from "@/components/poker-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { mockPlayers } from "@/lib/mock-data";
 import { DoorOpen, History, Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useDoc, useFirestore, useUser, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { Game } from "@/lib/types";
 
 export default function PlayPage() {
   const params = useParams();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const tableId = params.tableId as string;
-  const heroPlayer = mockPlayers.find(p => p.name.includes('Hero'));
-  const communityCards = ["A♥", "T♦", "J♣", "K♣", "Q♠"]
+  
+  const gameRef = useMemoFirebase(() => {
+    if (!firestore || !tableId) return null;
+    return doc(firestore, 'pokerGames', tableId);
+  }, [firestore, tableId]);
 
-  if (!heroPlayer) {
+  const { data: game, isLoading: isGameLoading } = useDoc<Game>(gameRef);
+
+  const heroPlayer = game?.players.find(p => p.id === user?.uid);
+
+  if (isUserLoading || isGameLoading || !game || !user) {
     return <div className="flex-grow flex items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>
+  }
+  
+  if (!heroPlayer) {
+     return (
+        <div className="flex-grow flex flex-col items-center justify-center text-center gap-4">
+          <h1 className="text-2xl font-bold">Vous n'êtes pas à cette table.</h1>
+          <p className="text-muted-foreground">Vous pouvez rejoindre la partie depuis le lobby.</p>
+          <Button asChild>
+            <Link href="/lobby">Retourner au Lobby</Link>
+          </Button>
+        </div>
+      );
   }
 
   return (
@@ -26,20 +49,20 @@ export default function PlayPage() {
       {/* Main game area */}
       <main className="flex-grow flex flex-col">
         <div className="p-4 space-y-1">
-          <h1 className="text-lg font-bold text-white">Table: Antananarivo #{tableId}</h1>
-          <p className="text-sm text-muted-foreground">Blinds: 500/1000 Ar</p>
+          <h1 className="text-lg font-bold text-white">Table: {game.name} #{tableId.substring(0,5)}</h1>
+          <p className="text-sm text-muted-foreground">Blinds: {game.stakes} Ar</p>
         </div>
         
         <div className="flex-grow relative flex items-center justify-center">
-          <PokerTable players={mockPlayers} communityCards={communityCards} pot={45000} />
+          <PokerTable players={game.players} communityCards={game.communityCards} pot={game.pot} dealerPosition={game.dealerPosition} currentPlayerId={game.currentPlayerId} />
         </div>
         
         <div className="p-4 flex flex-col items-center gap-4">
             <div className="flex items-end gap-4">
-              <PlayerHand cards={heroPlayer.cards || ['', '']} />
-              <div className="bg-green-500/20 text-green-300 text-xs font-bold px-2 py-1 rounded-full">FLUSH DRAW</div>
+              <PlayerHand cards={heroPlayer.cards || [' ', ' ']} />
+              {heroPlayer.handRank && <div className="bg-green-500/20 text-green-300 text-xs font-bold px-2 py-1 rounded-full">{heroPlayer.handRank.toUpperCase()}</div>}
             </div>
-            <ActionButtons playerStack={heroPlayer.stack} currentBet={1000} minRaise={2000} />
+            <ActionButtons playerStack={heroPlayer.stack} currentBet={0} minRaise={2000} />
         </div>
       </main>
 
@@ -51,8 +74,8 @@ export default function PlayPage() {
                <CardTitle className="text-base font-bold text-muted-foreground">MON SOLDE</CardTitle>
                <Button variant="link" size="sm" className="text-xs text-primary h-auto p-0">Historique</Button>
             </div>
-            <p className="text-2xl font-bold text-white">25,400 Ar</p>
-            <CardDescription className="text-xs">Disponible pour jouer</CardDescription>
+            <p className="text-2xl font-bold text-white">{heroPlayer.stack.toLocaleString('fr-FR')} Ar</p>
+            <CardDescription className="text-xs">Disponible sur cette table</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2">

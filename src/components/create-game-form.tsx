@@ -24,8 +24,9 @@ import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Game } from '@/lib/types';
+import { Game, Player } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const FormSchema = z.object({
   name: z.string().min(3, 'Le nom doit contenir au moins 3 caractères.'),
@@ -61,17 +62,52 @@ export function CreateGameForm({ setOpen }: CreateGameFormProps) {
 
     const gamesCollection = collection(firestore, 'pokerGames');
     
+    const heroPlayer: Player = {
+        id: user.uid,
+        name: user.displayName || user.email || 'Joueur',
+        avatarUrl: user.photoURL || PlaceHolderImages.find(p => p.id === 'avatar-5')?.imageUrl || '',
+        stack: 10000, // Initial stack for the game
+        isDealer: false,
+        isTurn: false,
+        cards: null,
+        position: 1,
+        action: null,
+        betAmount: 0,
+    };
+
+    const players: Player[] = [heroPlayer];
+    // Add empty seats
+    for (let i = 2; i <= 9; i++) {
+        players.push({
+            id: `empty-${i}`,
+            name: 'Siège vide',
+            avatarUrl: '',
+            stack: 0,
+            isDealer: false,
+            isTurn: false,
+            cards: null,
+            position: i,
+            action: null,
+            betAmount: 0,
+        });
+    }
+
     const newGame: Omit<Game, 'id'> = {
         name: data.name,
         gameVariant: data.gameVariant,
         gameFormat: data.gameFormat,
-        stakes: data.stakes,
-        players: 1,
+        stakes: `${data.stakes} Ar`,
+        players: players,
         maxPlayers: 9,
         limit: 'No Limit',
         status: 'EN COURS',
         playerIds: [user.uid],
         startTime: new Date().toISOString(),
+        communityCards: [],
+        pot: 0,
+        currentPlayerId: user.uid,
+        gamePhase: 'pre-flop',
+        dealerPosition: 1,
     };
 
     try {

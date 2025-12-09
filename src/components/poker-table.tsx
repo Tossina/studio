@@ -8,23 +8,26 @@ interface PokerTableProps {
   players: Player[];
   communityCards: string[];
   pot: number;
+  dealerPosition: number;
+  currentPlayerId: string;
 }
 
 const SEAT_POSITIONS = [
   // 9-handed positions for a wider layout
-  { top: "50%", left: "-5%", transform: "translateY(-50%)" }, // Seat 1 (SB)
+  { top: "50%", left: "-5%", transform: "translateY(-50%)" }, // Seat 1 
   { top: "15%", left: "10%", transform: "translate(-50%, -50%)" }, // Seat 2
   { top: "0%", left: "35%", transform: "translateX(-50%)" },   // Seat 3
   { top: "0%", right: "35%", transform: "translateX(50%)" },  // Seat 4
   { top: "15%", right: "10%", transform: "translate(50%, -50%)" }, // Seat 5
-  { top: "50%", right: "-5%", transform: "translateY(-50%)" }, // Seat 6 (BTN)
+  { top: "50%", right: "-5%", transform: "translateY(-50%)" }, // Seat 6
   { top: "85%", right: "20%", transform: "translate(50%, 50%)" },// Seat 7
   { top: "100%", left: "50%", transform: "translateX(-50%)" }, // Seat 8 (Hero)
   { top: "85%", left: "20%", transform: "translate(-50%, 50%)" }, // Seat 9
 ];
 
-export function PokerTable({ players, communityCards, pot }: PokerTableProps) {
+export function PokerTable({ players, communityCards, pot, dealerPosition, currentPlayerId }: PokerTableProps) {
   const renderCard = (card: string, index: number) => {
+    if(!card || card.trim() === '') return <div key={index} className="relative w-12 h-16 bg-card rounded-md shadow-inner border border-border/50"></div>
     const isRed = card.includes('♥') || card.includes('♦');
     return (
       <div key={index} className="relative w-12 h-16 bg-white rounded-md flex items-center justify-center text-black font-bold text-2xl shadow-lg border border-gray-200">
@@ -44,11 +47,16 @@ export function PokerTable({ players, communityCards, pot }: PokerTableProps) {
         
         {/* Players */}
         {players.map((player) => {
+          if (!player || !player.id) return null; // Skip empty seats or invalid player objects
           const style = SEAT_POSITIONS[player.position - 1];
           if (!style) return null;
+          
+          const isTurn = player.id === currentPlayerId;
+          const isDealer = player.position === dealerPosition;
+          
           return (
              <div key={player.id} className="absolute" style={style}>
-               <PlayerAvatar player={player} />
+               <PlayerAvatar player={{...player, isTurn, isDealer}} />
             </div>
           )
         })}
@@ -60,8 +68,8 @@ export function PokerTable({ players, communityCards, pot }: PokerTableProps) {
                   POT TOTAL : <span className="font-bold text-lg text-primary">{pot.toLocaleString('fr-FR')} Ar</span>
                 </p>
             </div>
-            <div className="flex gap-2">
-                {communityCards.map(renderCard)}
+            <div className="flex gap-2 min-h-[4rem]">
+                {Array.from({length: 5}).map((_, i) => renderCard(communityCards[i] || '', i))}
             </div>
         </div>
       </div>
