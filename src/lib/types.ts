@@ -11,7 +11,7 @@ export type Player = {
   betAmount: number;
 };
 
-export type GameVariant = 'Texas Hold\'em' | 'Omaha' | 'Stud' | 'Draw';
+export type GameVariant = "Texas Hold'em" | 'Omaha' | 'Stud' | 'Draw';
 
 export type GameFormat = 'Cash Game' | 'MTT' | 'Sit & Go' | 'Fast Poker';
 
@@ -24,4 +24,8 @@ export type Game = {
   players: number;
   maxPlayers: number;
   limit: string;
+  subVariant?: 'Rapide' | 'Hyper' | 'Deepstack' | 'Regular';
+  buyIn?: number;
+  prizePool?: number;
+  status: 'EN COURS' | 'TARDIF' | 'INSCRIPTION';
 };

@@ -25,20 +25,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased min-h-screen flex flex-col">
+      <body className="font-body antialiased min-h-screen flex flex-col bg-background">
         <FirebaseClientProvider>
           <Header />
           <main className="flex-grow">{children}</main>
-          <footer className="w-full py-8 border-t border-border/40">
-            <div className="container mx-auto text-center text-sm text-muted-foreground">
-              <p>© 2024 DagoPoker. Tous droits réservés. Jouer comporte des risques : endettement, isolement, dépendance.</p>
-              <div className="flex justify-center gap-4 mt-4">
-                <Link href="#" className="hover:text-foreground">Conditions Générales</Link>
-                <Link href="#" className="hover:text-foreground">Politique de Confidentialité</Link>
-                <Link href="#" className="hover:text-foreground">Jeu Responsable</Link>
-              </div>
-            </div>
-          </footer>
           <Toaster />
         </FirebaseClientProvider>
       </body>
