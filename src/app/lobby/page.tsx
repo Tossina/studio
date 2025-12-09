@@ -235,12 +235,16 @@ export default function LobbyPage() {
   }, [games, activeType, activeFormats, activeStake]);
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push("/");
+    if (!isUserLoading) {
+      if (!user) {
+        router.push("/");
+      } else if (!user.emailVerified) {
+        router.push("/verify-email");
+      }
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !user) {
+  if (isUserLoading || !user || !user.emailVerified) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <Loader2 className="w-16 h-16 animate-spin text-primary" />
@@ -332,5 +336,3 @@ export default function LobbyPage() {
     </div>
   );
 }
-
-    

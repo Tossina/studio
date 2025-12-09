@@ -14,7 +14,7 @@ import { useAuth, useUser, setDocumentNonBlocking } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { initiateEmailSignIn, initiateEmailSignUp } from "@/firebase/non-blocking-login";
 import { Loader2 } from "lucide-react";
-import { User, onAuthStateChanged } from "firebase/auth";
+import { User, onAuthStateChanged, sendEmailVerification } from "firebase/auth";
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -65,7 +65,11 @@ export default function Home() {
   
   useEffect(() => {
     if (user && !isUserLoading) {
-      router.push('/lobby');
+      if (user.emailVerified) {
+        router.push('/lobby');
+      } else {
+        router.push('/verify-email');
+      }
     }
   }, [user, isUserLoading, router]);
 
@@ -88,16 +92,16 @@ export default function Home() {
                     email: newUser.email,
                     registrationDate: new Date().toISOString(),
                 };
-                setDocumentNonBlocking(userRef, userProfile);
+                await setDocumentNonBlocking(userRef, userProfile);
+                await sendEmailVerification(newUser);
             }
             setPendingSignupData(null); 
             setAuthLoading(false);
             setAuthError(null);
-            // router.push('/lobby') is handled by the other useEffect
+            router.push('/verify-email');
         } else if (newUser) {
             setAuthLoading(false);
             setAuthError(null);
-             // router.push('/lobby') is handled by the other useEffect
         } else {
              setAuthLoading(false);
         }
@@ -289,5 +293,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
