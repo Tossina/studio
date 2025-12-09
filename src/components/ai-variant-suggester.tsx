@@ -36,10 +36,10 @@ const FormSchema = z.object({
   playStyle: z
     .string()
     .min(10, {
-      message: "Please describe your play style in at least 10 characters.",
+      message: "Veuillez décrire votre style de jeu avec au moins 10 caractères.",
     })
     .max(200, {
-      message: "Description must not be longer than 200 characters.",
+      message: "La description ne doit pas dépasser 200 caractères.",
     }),
   variantsPlayed: z.array(z.string()).optional(),
 });
@@ -68,7 +68,7 @@ export function AIVariantSuggester() {
     if (result.success && result.data) {
         setSuggestion(result.data);
     } else {
-        setError(result.error || "An unknown error occurred.");
+        setError(result.error || "Une erreur inconnue est survenue.");
     }
     setIsLoading(false);
   }
@@ -78,10 +78,10 @@ export function AIVariantSuggester() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
             <Wand2 className="text-primary"/>
-            AI Variant Suggester
+            Conseiller de Variante IA
         </CardTitle>
         <CardDescription>
-          Tell us how you play, and our AI will suggest a new poker variant for you to try.
+          Décrivez votre façon de jouer, et notre IA vous suggérera une nouvelle variante de poker à essayer.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -92,10 +92,10 @@ export function AIVariantSuggester() {
               name="playStyle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Your Play Style</FormLabel>
+                  <FormLabel>Votre style de jeu</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., I'm an aggressive player who likes to bluff a lot."
+                      placeholder="ex: Je suis un joueur agressif qui aime beaucoup bluffer."
                       {...field}
                     />
                   </FormControl>
@@ -108,7 +108,7 @@ export function AIVariantSuggester() {
               name="variantsPlayed"
               render={() => (
                 <FormItem>
-                    <FormLabel>Variants You've Played</FormLabel>
+                    <FormLabel>Variantes déjà jouées</FormLabel>
                     <div className="space-y-2">
                   {variants.map((item) => (
                     <FormField
@@ -154,17 +154,17 @@ export function AIVariantSuggester() {
               {isLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Get Suggestion
+              Obtenir une suggestion
             </Button>
             {suggestion && (
                 <Alert>
-                    <AlertTitle className="font-bold">Try {suggestion.variant}!</AlertTitle>
+                    <AlertTitle className="font-bold">Essayez {suggestion.variant} !</AlertTitle>
                     <AlertDescription>{suggestion.reason}</AlertDescription>
                 </Alert>
             )}
             {error && (
                 <Alert variant="destructive">
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>Erreur</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}

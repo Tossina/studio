@@ -29,7 +29,7 @@ export default function ProfilePage() {
 
     return (
         <div className="container mx-auto py-8">
-            <h1 className="text-3xl font-bold mb-8 font-headline">My Profile</h1>
+            <h1 className="text-3xl font-bold mb-8 font-headline">Mon Profil</h1>
             <div className="grid gap-10 md:grid-cols-3">
                 <div className="md:col-span-1">
                     <Card>
@@ -38,51 +38,51 @@ export default function ProfilePage() {
                                 {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
                                 <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                             </Avatar>
-                            <CardTitle>{user.displayName || 'PlayerOne'}</CardTitle>
-                            <CardDescription>$1,250.00</CardDescription>
+                            <CardTitle>{user.displayName || 'Joueur'}</CardTitle>
+                            <CardDescription>1 250,00 Ar</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Button className="w-full">Upload New Avatar</Button>
+                            <Button className="w-full">Changer d'avatar</Button>
                         </CardContent>
                     </Card>
                 </div>
                 <div className="md:col-span-2 space-y-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Account Information</CardTitle>
-                            <CardDescription>Update your account details here.</CardDescription>
+                            <CardTitle>Informations du compte</CardTitle>
+                            <CardDescription>Mettez à jour les détails de votre compte ici.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="username">Username</Label>
-                                <Input id="username" defaultValue={user.displayName || "PlayerOne"} />
+                                <Label htmlFor="username">Nom d'utilisateur</Label>
+                                <Input id="username" defaultValue={user.displayName || "Joueur"} />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">E-mail</Label>
                                 <Input id="email" type="email" defaultValue={user.email || ""} readOnly />
                             </div>
-                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Save Changes</Button>
+                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Sauvegarder</Button>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Change Password</CardTitle>
-                            <CardDescription>Update your password for security.</CardDescription>
+                            <CardTitle>Changer le mot de passe</CardTitle>
+                            <CardDescription>Mettez à jour votre mot de passe pour plus de sécurité.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                              <div className="space-y-2">
-                                <Label htmlFor="current-password">Current Password</Label>
+                                <Label htmlFor="current-password">Mot de passe actuel</Label>
                                 <Input id="current-password" type="password" />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="new-password">New Password</Label>
+                                <Label htmlFor="new-password">Nouveau mot de passe</Label>
                                 <Input id="new-password" type="password" />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                                <Label htmlFor="confirm-password">Confirmer le nouveau mot de passe</Label>
                                 <Input id="confirm-password" type="password" />
                             </div>
-                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Update Password</Button>
+                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Mettre à jour</Button>
                         </CardContent>
                     </Card>
                 </div>

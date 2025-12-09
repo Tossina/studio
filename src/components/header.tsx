@@ -79,14 +79,14 @@ export function Header() {
                     </Avatar>
                   </Link>
                 </Button>
-                <Button onClick={handleSignOut} variant="ghost" size="icon" aria-label="Sign out">
+                <Button onClick={handleSignOut} variant="ghost" size="icon" aria-label="Se déconnecter">
                   <LogOut className="h-5 w-5" />
                 </Button>
               </>
             ) : (
               <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
                 <Link href="/">
-                  S'inscrire
+                  S'inscrire / Se connecter
                 </Link>
               </Button>
             )}

@@ -21,14 +21,14 @@ export function AIOpponentGame() {
 
         const result = await getAiMoveAction({
             gameType: 'Texas Holdem',
-            gameState: 'Heads up, post-flop. Pot is $150. Community cards are Ah, 10d, 2c. Hero (user) is out of position and checks.',
+            gameState: 'Heads up, post-flop. Pot is 150 Ar. Community cards are Ah, 10d, 2c. Hero (user) is out of position and checks.',
             playerCards: 'Ac Kc'
         });
 
         if (result.success && result.data) {
             setAiMove(result.data);
         } else {
-            setError(result.error || "An unknown error occurred.");
+            setError(result.error || "Une erreur inconnue est survenue.");
         }
         setIsLoading(false);
     };
@@ -38,32 +38,32 @@ export function AIOpponentGame() {
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Wand2 className="text-primary" />
-                    AI Opponent
+                    Adversaire IA
                 </CardTitle>
                 <CardDescription>
-                    Practice a hand against our AI. See how it would play in your situation.
+                    Entraînez-vous sur une main contre notre IA. Voyez comment elle jouerait dans votre situation.
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col justify-center gap-4">
                 <div className="text-sm space-y-2 p-3 bg-muted/50 rounded-lg">
-                    <p><span className="font-semibold">Your Hand:</span> Ac Kc</p>
-                    <p><span className="font-semibold">Board:</span> Ah 10d 2c</p>
-                    <p><span className="font-semibold">Your Action:</span> Check</p>
+                    <p><span className="font-semibold">Votre Main :</span> Ac Kc</p>
+                    <p><span className="font-semibold">Board :</span> Ah 10d 2c</p>
+                    <p><span className="font-semibold">Votre Action :</span> Check</p>
                 </div>
                 <Button onClick={handleGetAiMove} disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    Get AI's Move
+                    Obtenir le coup de l'IA
                 </Button>
             </CardContent>
             {aiMove && (
                 <CardContent>
                     <Alert>
                         <AlertTitle className="flex items-center justify-between">
-                            <span>AI chooses to <span className="font-bold uppercase text-primary">{aiMove.action}</span></span>
-                            {aiMove.action === 'raise' && <Badge>${aiMove.betSize}</Badge>}
+                            <span>L'IA choisit de <span className="font-bold uppercase text-primary">{aiMove.action}</span></span>
+                            {aiMove.action === 'raise' && <Badge>{aiMove.betSize} Ar</Badge>}
                         </AlertTitle>
                         <AlertDescription className="mt-2">
-                            <strong>Reasoning:</strong> {aiMove.reasoning}
+                            <strong>Raisonnement :</strong> {aiMove.reasoning}
                         </AlertDescription>
                     </Alert>
                 </CardContent>
@@ -71,7 +71,7 @@ export function AIOpponentGame() {
              {error && (
                 <CardContent>
                     <Alert variant="destructive">
-                        <AlertTitle>Error</AlertTitle>
+                        <AlertTitle>Erreur</AlertTitle>
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 </CardContent>

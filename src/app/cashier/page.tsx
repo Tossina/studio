@@ -24,34 +24,34 @@ export default function CashierPage() {
     <div className="container mx-auto py-8 flex justify-center">
       <Tabs defaultValue="deposit" className="w-full max-w-xl">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="deposit">Deposit</TabsTrigger>
-          <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
+          <TabsTrigger value="deposit">Dépôt</TabsTrigger>
+          <TabsTrigger value="withdraw">Retrait</TabsTrigger>
         </TabsList>
         <TabsContent value="deposit">
           <Card>
             <CardHeader>
-              <CardTitle>Make a Deposit</CardTitle>
+              <CardTitle>Effectuer un dépôt</CardTitle>
               <CardDescription>
-                Add funds to your account. Your current balance is $1,250.00.
+                Ajoutez des fonds à votre compte. Votre solde actuel est de 1 250,00 Ar.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="deposit-amount">Amount (USD)</Label>
-                <Input id="deposit-amount" placeholder="e.g., 50.00" type="number" />
+                <Label htmlFor="deposit-amount">Montant (Ar)</Label>
+                <Input id="deposit-amount" placeholder="ex: 50000" type="number" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="payment-method">Payment Method</Label>
+                <Label htmlFor="payment-method">Moyen de paiement</Label>
                 <Select>
                   <SelectTrigger id="payment-method">
-                    <SelectValue placeholder="Select a method" />
+                    <SelectValue placeholder="Sélectionnez une méthode" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="mvola">Mvola</SelectItem>
                     <SelectItem value="orangemoney">Orange Money</SelectItem>
                     <SelectItem value="airtelmoney">Airtel Money</SelectItem>
-                    <SelectItem value="card">Credit/Debit Card</SelectItem>
-                    <SelectItem value="bank">Bank Transfer</SelectItem>
+                    <SelectItem value="card">Carte de crédit/débit</SelectItem>
+                    <SelectItem value="bank">Virement bancaire</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -59,7 +59,7 @@ export default function CashierPage() {
             <CardFooter>
               <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                 <CreditCard className="mr-2 h-4 w-4" />
-                Proceed to Deposit
+                Procéder au dépôt
               </Button>
             </CardFooter>
           </Card>
@@ -67,39 +67,39 @@ export default function CashierPage() {
         <TabsContent value="withdraw">
           <Card>
             <CardHeader>
-              <CardTitle>Request a Withdrawal</CardTitle>
+              <CardTitle>Demander un retrait</CardTitle>
               <CardDescription>
-                Withdraw funds from your account. Available for withdrawal: $1,250.00.
+                Retirez des fonds de votre compte. Disponible pour retrait : 1 250,00 Ar.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="withdraw-amount">Amount (USD)</Label>
-                <Input id="withdraw-amount" placeholder="e.g., 100.00" type="number" />
+                <Label htmlFor="withdraw-amount">Montant (Ar)</Label>
+                <Input id="withdraw-amount" placeholder="ex: 100000" type="number" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="withdraw-method">Withdrawal Method</Label>
+                <Label htmlFor="withdraw-method">Moyen de retrait</Label>
                 <Select>
                   <SelectTrigger id="withdraw-method">
-                    <SelectValue placeholder="Select a method" />
+                    <SelectValue placeholder="Sélectionnez une méthode" />
                   </SelectTrigger>
                   <SelectContent>
                      <SelectItem value="mvola">Mvola</SelectItem>
                     <SelectItem value="orangemoney">Orange Money</SelectItem>
                     <SelectItem value="airtelmoney">Airtel Money</SelectItem>
-                    <SelectItem value="bank">Bank Transfer</SelectItem>
+                    <SelectItem value="bank">Virement bancaire</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                 <Label htmlFor="account-details">Account Details</Label>
-                 <Input id="account-details" placeholder="e.g., Phone number or Bank account" />
+                 <Label htmlFor="account-details">Détails du compte</Label>
+                 <Input id="account-details" placeholder="ex: Numéro de téléphone ou Compte bancaire" />
               </div>
             </CardContent>
             <CardFooter>
               <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
                 <Landmark className="mr-2 h-4 w-4" />
-                Request Withdrawal
+                Demander le retrait
               </Button>
             </CardFooter>
           </Card>

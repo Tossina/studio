@@ -21,24 +21,24 @@ export default function LoginPage() {
             <Gem className="h-8 w-8 text-primary" />
             <CardTitle className="text-3xl font-bold font-headline">DagoPoker</CardTitle>
            </div>
-          <CardDescription>Enter your email below to login to your account</CardDescription>
+          <CardDescription>Entrez votre e-mail ci-dessous pour vous connecter à votre compte</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" placeholder="m@example.com" required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Mot de passe</Label>
             <Input id="password" type="password" required />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Login</Button>
+          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Connexion</Button>
           <div className="text-center text-sm">
-            Don&apos;t have an account?{" "}
+            Vous n'avez pas de compte ?{" "}
             <Link href="/signup" className="underline text-primary">
-              Sign up
+              S'inscrire
             </Link>
           </div>
         </CardFooter>

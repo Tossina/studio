@@ -21,28 +21,28 @@ export default function SignupPage() {
                 <Gem className="h-8 w-8 text-primary" />
                 <CardTitle className="text-3xl font-bold font-headline">DagoPoker</CardTitle>
             </div>
-            <CardDescription>Enter your information to create an account</CardDescription>
+            <CardDescription>Entrez vos informations pour créer un compte</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
-            <Input id="username" placeholder="PlayerOne" required />
+            <Label htmlFor="username">Nom d'utilisateur</Label>
+            <Input id="username" placeholder="RaryGasy" required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" placeholder="m@example.com" required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Mot de passe</Label>
             <Input id="password" type="password" required />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Create an account</Button>
+          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Créer un compte</Button>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
+            Vous avez déjà un compte ?{" "}
             <Link href="/login" className="underline text-primary">
-              Login
+              Connexion
             </Link>
           </div>
         </CardFooter>

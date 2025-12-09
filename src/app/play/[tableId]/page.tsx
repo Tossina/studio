@@ -91,7 +91,7 @@ export default function PlayPage() {
         <Separator className="my-2 bg-border/50" />
 
         <div className="flex-grow flex flex-col min-h-0">
-            <p className="p-4 text-xs font-bold text-muted-foreground">TABLE CHAT</p>
+            <p className="p-4 text-xs font-bold text-muted-foreground">CHAT DE LA TABLE</p>
             <div className="flex-grow min-h-0">
               <ChatBox />
             </div>

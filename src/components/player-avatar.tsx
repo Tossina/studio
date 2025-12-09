@@ -11,7 +11,7 @@ export function PlayerAvatar({ player }: PlayerAvatarProps) {
 
   const getActionText = () => {
     if (player.action === 'fold') return 'Fold';
-    if (player.isTurn) return 'Thinking...';
+    if (player.isTurn) return 'Réfléchit...';
     if (player.action) return `${player.action.charAt(0).toUpperCase() + player.action.slice(1)} ${player.betAmount > 0 ? player.betAmount : ''}`.trim();
     return null;
   }
