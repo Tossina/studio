@@ -9,7 +9,7 @@ import { Game } from "@/lib/types";
 import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Ticket, Droplets, Rabbit, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 const gameTypes = [
   { id: "all", name: "Tous les jeux", icon: Spade },
@@ -18,9 +18,9 @@ const gameTypes = [
 ];
 
 const gameFormats = [
-  { id: "cash", name: "Cash Game" },
-  { id: "sit-go", name: "Sit & Go" },
-  { id: "tournament", name: "Tournois" },
+  { id: "cash", name: "Cash Game", format: "Cash Game" },
+  { id: "sit-go", name: "Sit & Go", format: "Sit & Go" },
+  { id: "tournament", name: "Tournois", format: "MTT" },
 ];
 
 const stakeLevels = ["Tous", "Micro (10-50 Ar)", "Basse (100-500 Ar)", "Moyenne (1k-5k Ar)", "Haute (10k+)"];
@@ -98,8 +98,24 @@ function GameCard({ game }: { game: Game }) {
   )
 }
 
-function FilterSidebar() {
-  const [activeType, setActiveType] = useState('all');
+interface FilterSidebarProps {
+  activeType: string;
+  setActiveType: (id: string) => void;
+  activeFormats: string[];
+  setActiveFormats: (formats: string[]) => void;
+  resetFilters: () => void;
+}
+
+
+function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveFormats, resetFilters }: FilterSidebarProps) {
+  
+  const handleFormatChange = (checked: boolean | string, format: string) => {
+    if (checked) {
+      setActiveFormats([...activeFormats, format]);
+    } else {
+      setActiveFormats(activeFormats.filter((f) => f !== format));
+    }
+  };
 
   return (
     <aside className="w-full lg:w-64 bg-card p-4 rounded-lg flex-shrink-0 self-start space-y-6">
@@ -124,16 +140,16 @@ function FilterSidebar() {
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-3">FORMAT</h3>
         <div className="space-y-3">
-            {gameFormats.map(({id, name}) => (
+            {gameFormats.map(({id, name, format}) => (
                  <div key={id} className="flex items-center space-x-2">
-                    <Checkbox id={id} defaultChecked={id === 'cash'} />
+                    <Checkbox id={id} checked={activeFormats.includes(format)} onCheckedChange={(checked) => handleFormatChange(checked, format)} />
                     <Label htmlFor={id} className="font-medium">{name}</Label>
                 </div>
             ))}
         </div>
       </div>
 
-      <Button variant="outline" className="w-full">
+      <Button variant="outline" className="w-full" onClick={resetFilters}>
         <RefreshCw className="mr-2 h-4 w-4" />
         Réinitialiser
       </Button>
@@ -145,7 +161,47 @@ function FilterSidebar() {
 export default function LobbyPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+
   const [activeStake, setActiveStake] = useState("Tous");
+  const [activeType, setActiveType] = useState('all');
+  const [activeFormats, setActiveFormats] = useState<string[]>(['Cash Game', 'Sit & Go', 'MTT']);
+
+  const resetFilters = () => {
+    setActiveStake("Tous");
+    setActiveType("all");
+    setActiveFormats(['Cash Game', 'Sit & Go', 'MTT']);
+  }
+
+  const filteredGames = useMemo(() => {
+    let games = mockGames;
+
+    if (activeType !== 'all') {
+      const typeMap = {
+        'holdem': "Texas Hold'em",
+        'omaha': "Omaha"
+      }
+      games = games.filter(game => game.variant === typeMap[activeType as keyof typeof typeMap]);
+    }
+
+    if (activeFormats.length > 0) {
+        games = games.filter(game => activeFormats.includes(game.format));
+    }
+    
+    // The stake filtering logic is complex because stakes are strings like "$1/$2"
+    // This is a simplified example. For a real app, stakes should be numeric.
+    if (activeStake !== 'Tous') {
+        if (activeStake.includes('Micro')) {
+            games = games.filter(g => (g.buyIn && g.buyIn <= 50) || (!g.buyIn && parseInt(g.stakes.split('/')[1].replace('$', '')) <= 2));
+        }
+        if (activeStake.includes('Basse')) {
+            games = games.filter(g => (g.buyIn && g.buyIn > 50 && g.buyIn <= 500) || (!g.buyIn && parseInt(g.stakes.split('/')[1].replace('$', '')) > 2 && parseInt(g.stakes.split('/')[1].replace('$', '')) <= 5));
+        }
+         // Add more stake logic if needed
+    }
+
+
+    return games;
+  }, [activeType, activeFormats, activeStake]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -164,7 +220,13 @@ export default function LobbyPage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        <FilterSidebar />
+        <FilterSidebar 
+          activeType={activeType}
+          setActiveType={setActiveType}
+          activeFormats={activeFormats}
+          setActiveFormats={setActiveFormats}
+          resetFilters={resetFilters}
+        />
         <div className="flex-1">
           {/* Featured Event */}
           <div className="bg-gradient-to-br from-red-900/50 via-background to-background p-6 rounded-lg mb-8 relative overflow-hidden border border-red-500/20">
@@ -195,13 +257,20 @@ export default function LobbyPage() {
             </div>
 
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {mockGames.map((game) => (
+                {filteredGames.map((game) => (
                     <GameCard key={game.id} game={game} />
                 ))}
              </div>
+             {filteredGames.length === 0 && (
+                <div className="text-center py-16 text-muted-foreground">
+                    <p>Aucun jeu ne correspond à vos filtres.</p>
+                </div>
+             )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+    
