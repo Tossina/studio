@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { mockPlayers } from "@/lib/mock-data";
-import { Clock, History, Loader2 } from "lucide-react";
+import { DoorOpen, History, Loader2 } from "lucide-react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 
-export default function PlayPage({ params }: { params: { tableId: string } }) {
-  const { tableId } = params;
+export default function PlayPage() {
+  const params = useParams();
+  const tableId = params.tableId as string;
   const heroPlayer = mockPlayers.find(p => p.name.includes('Hero'));
   const communityCards = ["A♥", "T♦", "J♣", "K♣", "Q♠"]
 
@@ -52,11 +55,16 @@ export default function PlayPage({ params }: { params: { tableId: string } }) {
             <CardDescription className="text-xs">Disponible pour jouer</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-xs font-bold text-muted-foreground mb-2">RECHARGEMENT RAPIDE</p>
-            <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" className="h-14 flex flex-col gap-1 bg-card hover:bg-accent">Mvola</Button>
-                <Button variant="outline" className="h-14 flex flex-col gap-1 bg-card hover:bg-accent">Orange</Button>
-                <Button variant="outline" className="h-14 flex flex-col gap-1 bg-card hover:bg-accent">Airtel</Button>
+            <div className="flex flex-col gap-2">
+              <p className="text-xs font-bold text-muted-foreground">RECHARGEMENT RAPIDE</p>
+              <div className="grid grid-cols-3 gap-2">
+                  <Button variant="outline" className="h-14 flex flex-col gap-1 bg-card hover:bg-accent">Mvola</Button>
+                  <Button variant="outline" className="h-14 flex flex-col gap-1 bg-card hover:bg-accent">Orange</Button>
+                  <Button variant="outline" className="h-14 flex flex-col gap-1 bg-card hover:bg-accent">Airtel</Button>
+              </div>
+              <Button asChild variant="outline" className="w-full mt-2">
+                <Link href="/lobby"><DoorOpen className="mr-2"/>Quitter la table</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

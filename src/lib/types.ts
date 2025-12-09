@@ -13,19 +13,19 @@ export type Player = {
 
 export type GameVariant = "Texas Hold'em" | 'Omaha' | 'Stud' | 'Draw';
 
-export type GameFormat = 'Cash Game' | 'MTT' | 'Sit & Go' | 'Fast Poker';
+export type GameFormat = 'Cash Game' | 'MTT' | 'Sit & Go';
 
 export type Game = {
   id: string;
-  name: string;
-  variant: GameVariant;
-  format: GameFormat;
+  name?: string;
+  gameVariant: GameVariant;
+  gameFormat: GameFormat;
   stakes: string;
   players: number;
   maxPlayers: number;
-  limit: string;
+  limit?: string;
   subVariant?: 'Rapide' | 'Hyper' | 'Deepstack' | 'Regular';
   buyIn?: number;
   prizePool?: number;
-  status: 'EN COURS' | 'TARDIF' | 'INSCRIPTION';
+  status?: 'EN COURS' | 'TARDIF' | 'INSCRIPTION';
 };

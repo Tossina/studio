@@ -3,18 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useUser } from "@/firebase";
-import { mockGames } from "@/lib/mock-data";
+import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { Game } from "@/lib/types";
-import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Ticket, Droplets, Rabbit, Plus } from "lucide-react";
+import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Droplets, Rabbit, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import { collection, query, where, Query } from "firebase/firestore";
 
 const gameTypes = [
   { id: "all", name: "Tous les jeux", icon: Spade },
-  { id: "holdem", name: "Texas Hold'em", icon: Spade },
-  { id: "omaha", name: "Omaha", icon: Spade },
+  { id: "Texas Hold'em", name: "Texas Hold'em", icon: Spade },
+  { id: "Omaha", name: "Omaha", icon: Spade },
 ];
 
 const gameFormats = [
@@ -23,18 +23,19 @@ const gameFormats = [
   { id: "tournament", name: "Tournois", format: "MTT" },
 ];
 
-const stakeLevels = ["Tous", "Micro (10-50 Ar)", "Basse (100-500 Ar)", "Moyenne (1k-5k Ar)", "Haute (10k+)"];
+const stakeLevels = ["Tous", "Micro", "Basse", "Moyenne", "Haute"];
 
 function GameCard({ game }: { game: Game }) {
-  const isTournament = game.format === 'MTT';
-  const isInscription = game.format === 'Sit & Go';
+  const isTournament = game.gameFormat === 'MTT';
+  const isInscription = game.gameFormat === 'Sit & Go';
 
   const formatIcons: { [key: string]: React.ElementType } = {
     'Rapide': Flame,
     'Hyper': Rabbit,
     'Deepstack': Droplets,
   };
-  const SubVariantIcon = formatIcons[game.subVariant || ''] || null;
+  // The subVariant might not exist on the game object, so we default to an empty string.
+  const SubVariantIcon = game.subVariant ? formatIcons[game.subVariant] : null;
 
   return (
     <Card className="bg-card/80 border-border hover:border-primary/50 transition-all">
@@ -43,11 +44,11 @@ function GameCard({ game }: { game: Game }) {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               {isTournament ? <Trophy className="w-5 h-5 text-amber-400"/> : <Flame className="w-5 h-5 text-red-500"/>}
-              <h3 className="text-lg font-bold">{game.name}</h3>
+              <h3 className="text-lg font-bold">{game.name || `Game #${game.id.substring(0, 5)}`}</h3>
             </div>
             <p className="text-xs text-muted-foreground flex items-center gap-2">
-              <span>{game.variant} {game.limit}</span>
-              {SubVariantIcon && <><span>•</span> <SubVariantIcon className="w-3 h-3"/><span>{game.subVariant}</span></>}
+              <span>{game.gameVariant} {game.limit}</span>
+              {SubVariantIcon && game.subVariant && <><span>•</span> <SubVariantIcon className="w-3 h-3"/><span>{game.subVariant}</span></>}
             </p>
           </div>
           <div className="text-center">
@@ -161,10 +162,17 @@ function FilterSidebar({ activeType, setActiveType, activeFormats, setActiveForm
 export default function LobbyPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
 
   const [activeStake, setActiveStake] = useState("Tous");
   const [activeType, setActiveType] = useState('all');
   const [activeFormats, setActiveFormats] = useState<string[]>(['Cash Game', 'Sit & Go', 'MTT']);
+
+  const gamesQuery = useMemoFirebase(() => {
+    return collection(firestore, 'pokerGames') as Query<Game>;
+  }, [firestore]);
+
+  const { data: games, isLoading: gamesLoading } = useCollection<Game>(gamesQuery);
 
   const resetFilters = () => {
     setActiveStake("Tous");
@@ -173,35 +181,34 @@ export default function LobbyPage() {
   }
 
   const filteredGames = useMemo(() => {
-    let games = mockGames;
+    if (!games) return [];
+    let tempGames = [...games];
 
     if (activeType !== 'all') {
-      const typeMap = {
-        'holdem': "Texas Hold'em",
-        'omaha': "Omaha"
-      }
-      games = games.filter(game => game.variant === typeMap[activeType as keyof typeof typeMap]);
+      tempGames = tempGames.filter(game => game.gameVariant === activeType);
     }
 
-    if (activeFormats.length > 0) {
-        games = games.filter(game => activeFormats.includes(game.format));
+    if (activeFormats.length > 0 && activeFormats.length < gameFormats.length) {
+        tempGames = tempGames.filter(game => activeFormats.includes(game.gameFormat));
     }
     
-    // The stake filtering logic is complex because stakes are strings like "$1/$2"
-    // This is a simplified example. For a real app, stakes should be numeric.
     if (activeStake !== 'Tous') {
-        if (activeStake.includes('Micro')) {
-            games = games.filter(g => (g.buyIn && g.buyIn <= 50) || (!g.buyIn && parseInt(g.stakes.split('/')[1].replace('$', '')) <= 2));
+      tempGames = tempGames.filter(g => {
+        const stakeUpper = parseInt(g.stakes.split('/')[1]?.replace(' Ar', ''));
+        if (isNaN(stakeUpper)) return false; // Or handle cases where stakes format is different
+        
+        switch (activeStake) {
+          case 'Micro': return stakeUpper <= 50;
+          case 'Basse': return stakeUpper > 50 && stakeUpper <= 500;
+          case 'Moyenne': return stakeUpper > 500 && stakeUpper <= 5000;
+          case 'Haute': return stakeUpper > 5000;
+          default: return true;
         }
-        if (activeStake.includes('Basse')) {
-            games = games.filter(g => (g.buyIn && g.buyIn > 50 && g.buyIn <= 500) || (!g.buyIn && parseInt(g.stakes.split('/')[1].replace('$', '')) > 2 && parseInt(g.stakes.split('/')[1].replace('$', '')) <= 5));
-        }
-         // Add more stake logic if needed
+      });
     }
 
-
-    return games;
-  }, [activeType, activeFormats, activeStake]);
+    return tempGames;
+  }, [games, activeType, activeFormats, activeStake]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -209,7 +216,7 @@ export default function LobbyPage() {
     }
   }, [user, isUserLoading, router]);
 
-  if (isUserLoading || !user) {
+  if (isUserLoading || !user || gamesLoading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <Loader2 className="w-16 h-16 animate-spin text-primary" />
@@ -272,5 +279,3 @@ export default function LobbyPage() {
     </div>
   );
 }
-
-    
