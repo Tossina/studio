@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { Game } from "@/lib/types";
+import { Game, Player } from "@/lib/types";
 import { Flame, Loader2, RefreshCw, Spade, Users, ArrowRight, Trophy, Droplets, Rabbit, Plus, Gamepad2, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -30,9 +30,14 @@ const gameFormats = [
 
 const stakeLevels = ["Tous", "Micro", "Basse", "Moyenne", "Haute"];
 
+function getPlayerCount(players: Player[]): number {
+    return players.filter(p => p.id && !p.id.startsWith('empty-')).length;
+}
+
 function GameCard({ game }: { game: Game }) {
   const isTournament = game.gameFormat === 'MTT';
   const isInscription = game.gameFormat === 'Sit & Go';
+  const playerCount = getPlayerCount(game.players);
 
   const formatIcons: { [key: string]: React.ElementType } = {
     'Rapide': Flame,
@@ -71,7 +76,7 @@ function GameCard({ game }: { game: Game }) {
             </div>
              <div className="space-y-1 text-sm text-right">
                 <p className="text-xs text-muted-foreground">{isTournament || isInscription ? 'INSCRITS' : 'JOUEURS'}</p>
-                <p className="font-bold text-base">{game.players} / {game.maxPlayers}</p>
+                <p className="font-bold text-base">{playerCount} / {game.maxPlayers}</p>
             </div>
         </div>
         
@@ -82,14 +87,14 @@ function GameCard({ game }: { game: Game }) {
         <div className="flex items-center gap-2">
           {isInscription || isTournament ? null : (
             <div className="flex -space-x-2">
-              {Array.from({length: Math.min(game.players, 3)}).map((_, i) => (
+              {Array.from({length: Math.min(playerCount, 3)}).map((_, i) => (
                 <div key={i} className="w-6 h-6 rounded-full bg-muted border-2 border-card flex items-center justify-center text-xs">
                   <Users className="w-3 h-3"/>
                 </div>
               ))}
-              {game.players > 3 && (
+              {playerCount > 3 && (
                 <div className="w-6 h-6 rounded-full bg-muted border-2 border-card flex items-center justify-center text-xs">
-                  <Plus className="w-3 h-3"/>{game.players - 3}
+                  <Plus className="w-3 h-3"/>{playerCount - 3}
                 </div>
               )}
             </div>

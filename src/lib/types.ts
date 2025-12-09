@@ -24,7 +24,7 @@ export type Game = {
   gameVariant: GameVariant;
   gameFormat: GameFormat;
   stakes: string;
-  players: Player[]; // Changed from number to Player[]
+  players: Player[];
   maxPlayers: number;
   limit?: string;
   subVariant?: 'Rapide' | 'Hyper' | 'Deepstack' | 'Regular';
