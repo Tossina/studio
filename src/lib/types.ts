@@ -1,3 +1,5 @@
+export type PlayerAction = 'bet' | 'check' | 'fold' | 'raise' | 'call';
+
 export type Player = {
   id: string;
   name: string;
@@ -7,7 +9,7 @@ export type Player = {
   isTurn: boolean;
   cards: [string, string] | null;
   position: number; // Seat number
-  action: 'bet' | 'check' | 'fold' | 'raise' | 'call' | null;
+  action: PlayerAction | null;
   betAmount: number;
   handRank?: string;
 };

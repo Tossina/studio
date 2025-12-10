@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String?
+  username      String?
+  avatarUrl     String?
+  balance       Float     @default(0.0)
+  playMoney     Float     @default(1000.0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  players       Player[]
+  transactions  Transaction[]
+}
+
+model Game {
+  id            String    @id @default(uuid())
+  name          String
+  variant       String    // Texas Hold'em, Omaha
+  format        String    // Cash Game, MTT
+  status        String    @default("WAITING") // WAITING, PLAYING, FINISHED
+  maxPlayers    Int       @default(6)
+  smallBlind    Float     @default(1.0)
+  bigBlind      Float     @default(2.0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Game State
+  pot           Float     @default(0)
+  communityCards String   @default("[]") // JSON string of cards
+  currentTurnPlayerId String? 
+  dealerPosition Int      @default(0)
+
+  players       Player[]
+}
+
+model Player {
+  id            String    @id @default(uuid())
+  userId        String
+  gameId        String
+  position      Int
+  stack         Float
+  cards         String    @default("[]") // Private cards, JSON
+  status        String    @default("ACTIVE") // ACTIVE, FOLDED, SITTING_OUT
+  currentBet    Float     @default(0)
+  isDealer      Boolean   @default(false)
+  isTurn        Boolean   @default(false)
+  
+  user          User      @relation(fields: [userId], references: [id])
+  game          Game      @relation(fields: [gameId], references: [id])
+  
+  @@unique([gameId, position])
+  @@unique([gameId, userId])
+}
+
+model Transaction {
+  id            String    @id @default(uuid())
+  userId        String
+  amount        Float
+  type          String    // DEPOSIT, WITHDRAWAL, WIN, LOSS, BUY_IN
+  status        String    @default("COMPLETED")
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id])
+}

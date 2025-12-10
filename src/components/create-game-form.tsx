@@ -20,8 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useAuth } from '@/providers/auth-provider';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Game, Player } from '@/lib/types';
@@ -38,12 +37,12 @@ const FormSchema = z.object({
 type CreateGameFormValues = z.infer<typeof FormSchema>;
 
 interface CreateGameFormProps {
-    setOpen: (open: boolean) => void;
+  setOpen: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-export function CreateGameForm({ setOpen }: CreateGameFormProps) {
-  const firestore = useFirestore();
-  const { user } = useUser();
+export function CreateGameForm({ setOpen, onSuccess }: CreateGameFormProps) {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<CreateGameFormValues>({
@@ -57,75 +56,36 @@ export function CreateGameForm({ setOpen }: CreateGameFormProps) {
   });
 
   async function onSubmit(data: CreateGameFormValues) {
-    if (!firestore || !user) return;
+    if (!user) return;
     setIsLoading(true);
 
-    const gamesCollection = collection(firestore, 'pokerGames');
-    
-    const heroPlayer: Player = {
-        id: user.uid,
-        name: user.displayName || user.email || 'Joueur',
-        avatarUrl: user.photoURL || PlaceHolderImages.find(p => p.id === 'avatar-5')?.imageUrl || '',
-        stack: 10000, // Initial stack for the game
-        isDealer: false,
-        isTurn: false,
-        cards: null,
-        position: 1,
-        action: null,
-        betAmount: 0,
-    };
-
-    const players: Player[] = [heroPlayer];
-    // Add empty seats
-    for (let i = 2; i <= 9; i++) {
-        players.push({
-            id: `empty-${i}`,
-            name: 'Siège vide',
-            avatarUrl: '',
-            stack: 0,
-            isDealer: false,
-            isTurn: false,
-            cards: null,
-            position: i,
-            action: null,
-            betAmount: 0,
-        });
-    }
-
-    const newGame: Omit<Game, 'id'> = {
-        name: data.name,
-        gameVariant: data.gameVariant,
-        gameFormat: data.gameFormat,
-        stakes: `${data.stakes} Ar`,
-        players: players,
-        maxPlayers: 9,
-        limit: 'No Limit',
-        status: 'EN COURS',
-        playerIds: [user.uid],
-        startTime: new Date().toISOString(),
-        communityCards: [],
-        pot: 0,
-        currentPlayerId: user.uid,
-        gamePhase: 'pre-flop',
-        dealerPosition: 1,
-    };
-
     try {
-        await addDocumentNonBlocking(gamesCollection, newGame);
-        toast({
-            title: "Table créée !",
-            description: `La table "${data.name}" a été ajoutée au lobby.`,
-        });
-        setOpen(false);
-    } catch(e) {
-        console.error(e);
-        toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Impossible de créer la table.",
-        });
+      const res = await fetch('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          maxPlayers: 9
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to create game");
+
+      toast({
+        title: "Table créée !",
+        description: `La table "${data.name}" a été ajoutée au lobby.`,
+      });
+      onSuccess?.(); // Refresh games list
+      setOpen(false);
+    } catch (e) {
+      console.error(e);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Impossible de créer la table.",
+      });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   }
 
@@ -202,7 +162,7 @@ export function CreateGameForm({ setOpen }: CreateGameFormProps) {
           )}
         />
         <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Créer la table
         </Button>
       </form>

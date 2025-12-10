@@ -4,18 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser } from "@/firebase";
+import { useAuth } from "@/providers/auth-provider";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function ProfilePage() {
-    const { user, isUserLoading } = useUser();
+    const { user, loading: isUserLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
         if (!isUserLoading && !user) {
-            router.push('/login');
+            router.push('/');
         }
     }, [user, isUserLoading, router]);
 
@@ -35,11 +35,11 @@ export default function ProfilePage() {
                     <Card>
                         <CardHeader className="items-center text-center">
                             <Avatar className="w-24 h-24 mb-4">
-                                {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
+                                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.username || 'User'} />}
                                 <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                             </Avatar>
-                            <CardTitle>{user.displayName || 'Joueur'}</CardTitle>
-                            <CardDescription>1 250,00 Ar</CardDescription>
+                            <CardTitle>{user.username || 'Joueur'}</CardTitle>
+                            <CardDescription>{user.balance?.toLocaleString('fr-FR')} Ar</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Button className="w-full">Changer d'avatar</Button>
@@ -55,7 +55,7 @@ export default function ProfilePage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="username">Nom d'utilisateur</Label>
-                                <Input id="username" defaultValue={user.displayName || "Joueur"} />
+                                <Input id="username" defaultValue={user.username || "Joueur"} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">E-mail</Label>
@@ -70,7 +70,7 @@ export default function ProfilePage() {
                             <CardDescription>Mettez à jour votre mot de passe pour plus de sécurité.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="current-password">Mot de passe actuel</Label>
                                 <Input id="current-password" type="password" />
                             </div>
@@ -78,7 +78,7 @@ export default function ProfilePage() {
                                 <Label htmlFor="new-password">Nouveau mot de passe</Label>
                                 <Input id="new-password" type="password" />
                             </div>
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="confirm-password">Confirmer le nouveau mot de passe</Label>
                                 <Input id="confirm-password" type="password" />
                             </div>

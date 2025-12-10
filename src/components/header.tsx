@@ -1,31 +1,18 @@
-'use client';
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Gem, LogOut, Search, Wallet, Loader2 } from "lucide-react";
-import { useAuth, useUser, useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { useAuth } from "@/providers/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Input } from "./ui/input";
-import { doc } from "firebase/firestore";
 
 export function Header() {
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  const firestore = useFirestore();
+  const { user, loading: isUserLoading, logout } = useAuth();
 
-  const userProfileRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
+  const handleSignOut = logout;
 
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ balance: number }>(userProfileRef);
-
-  const handleSignOut = () => {
-    if(auth) {
-      auth.signOut();
-    }
-  };
-
-  const balance = userProfile?.balance ?? 0;
+  const balance = user?.balance ?? 0;
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur border-b border-border/40">
@@ -36,7 +23,7 @@ export function Header() {
             DagoPoker
           </span>
         </Link>
-        
+
         <div className="flex-1 flex justify-center items-center">
           <div className="relative w-full max-w-lg">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -44,11 +31,11 @@ export function Header() {
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm ml-10">
             <Link
-                href="/lobby"
-                className="transition-colors text-primary font-semibold border-b-2 border-primary pb-1"
-              >
-                Lobby
-              </Link>
+              href="/lobby"
+              className="transition-colors text-primary font-semibold border-b-2 border-primary pb-1"
+            >
+              Lobby
+            </Link>
             <Link
               href="#"
               className="transition-colors hover:text-foreground/80 text-muted-foreground"
@@ -67,46 +54,42 @@ export function Header() {
             >
               Promotions
             </Link>
-        </nav>
+          </nav>
         </div>
 
 
         <div className="flex flex-1 items-center justify-end gap-3">
-            {isUserLoading ? (
-              <div className="w-48 h-10 bg-muted rounded-md animate-pulse" />
-            ) : user ? (
-              <>
-                <div className="text-right">
-                    <p className="text-xs text-muted-foreground">SOLDE</p>
-                    {isProfileLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin"/>
-                    ) : (
-                      <p className="font-bold text-lg">{balance.toLocaleString('fr-FR')} Ar</p>
-                    )}
-                </div>
-                 <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
-                  <Link href="/cashier"><Wallet className="mr-2 h-4 w-4" /> Dépôt</Link>
-                </Button>
-                
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href="/profile">
-                    <Avatar className="h-10 w-10 border-2 border-primary">
-                      {user.photoURL && <AvatarImage src={user.photoURL} />}
-                      <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-                </Button>
-                <Button onClick={handleSignOut} variant="ghost" size="icon" aria-label="Se déconnecter">
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </>
-            ) : (
-              <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
-                <Link href="/">
-                  S'inscrire / Se connecter
+          {isUserLoading ? (
+            <div className="w-48 h-10 bg-muted rounded-md animate-pulse" />
+          ) : user ? (
+            <>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">SOLDE</p>
+                <p className="font-bold text-lg">{balance.toLocaleString('fr-FR')} Ar</p>
+              </div>
+              <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold">
+                <Link href="/cashier"><Wallet className="mr-2 h-4 w-4" /> Dépôt</Link>
+              </Button>
+
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="/profile">
+                  <Avatar className="h-10 w-10 border-2 border-primary">
+                    {user.avatarUrl && <AvatarImage src={user.avatarUrl} />}
+                    <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
                 </Link>
               </Button>
-            )}
+              <Button onClick={handleSignOut} variant="ghost" size="icon" aria-label="Se déconnecter">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary">
+              <Link href="/">
+                S'inscrire / Se connecter
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>

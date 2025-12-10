@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -11,8 +10,7 @@ import { CreditCard, Landmark, Loader2 } from "lucide-react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, collection, writeBatch, serverTimestamp, increment } from "firebase/firestore";
+import { useAuth } from "@/providers/auth-provider";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -33,16 +31,8 @@ type DepositFormValues = z.infer<typeof DepositSchema>;
 type WithdrawFormValues = z.infer<typeof WithdrawSchema>;
 
 export default function CashierPage() {
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const { user, loading: isUserLoading } = useAuth();
   const router = useRouter();
-
-  const userProfileRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
-
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<{ balance: number }>(userProfileRef);
 
   const depositForm = useForm<DepositFormValues>({
     resolver: zodResolver(DepositSchema),
@@ -53,10 +43,10 @@ export default function CashierPage() {
     resolver: zodResolver(WithdrawSchema),
     defaultValues: { amount: 10000, accountDetails: "" },
   });
-  
+
   useEffect(() => {
     if (!isUserLoading && !user) {
-        router.push('/');
+      router.push('/');
     }
   }, [user, isUserLoading, router]);
 
@@ -66,54 +56,28 @@ export default function CashierPage() {
     method: string,
     details?: string
   ) => {
-    if (!firestore || !user) return;
-    
-    withdrawForm.formState.isSubmitting || depositForm.formState.isSubmitting;
+    if (!user) return;
 
-    if (type === 'withdrawal' && userProfile && userProfile.balance < amount) {
-        toast({
-            variant: "destructive",
-            title: "Solde insuffisant",
-            description: "Votre solde est insuffisant pour effectuer ce retrait.",
-        });
-        return;
-    }
+    const balance = user.balance || 0;
 
-    const batch = writeBatch(firestore);
-    const userRef = doc(firestore, "users", user.uid);
-    const transactionRef = doc(collection(firestore, `users/${user.uid}/transactions`));
-
-    const newTransaction = {
-      userId: user.uid,
-      transactionDate: serverTimestamp(),
-      transactionType: type,
-      amount: amount,
-      paymentMethod: method,
-      status: "completed",
-      ...(details && { accountDetails: details }),
-    };
-
-    batch.set(transactionRef, newTransaction);
-    batch.update(userRef, {
-      balance: increment(type === 'deposit' ? amount : -amount),
-    });
-
-    try {
-      await batch.commit();
-      toast({
-        title: `Transaction réussie !`,
-        description: `Votre ${type === 'deposit' ? 'dépôt' : 'retrait'} de ${amount} Ar a été effectué.`,
-      });
-      depositForm.reset();
-      withdrawForm.reset();
-    } catch (error) {
-      console.error("Erreur de transaction :", error);
+    if (type === 'withdrawal' && balance < amount) {
       toast({
         variant: "destructive",
-        title: "Erreur de transaction",
-        description: "Une erreur est survenue. Veuillez réessayer.",
+        title: "Solde insuffisant",
+        description: "Votre solde est insuffisant pour effectuer ce retrait.",
       });
+      return;
     }
+
+    // TODO: Implement actual transaction API call
+    // For now, just show success toast
+    toast({
+      title: "Transaction simulée",
+      description: `Cette fonctionnalité sera disponible prochainement. Montant: ${amount} Ar`,
+    });
+
+    depositForm.reset();
+    withdrawForm.reset();
   };
 
   const onDepositSubmit: SubmitHandler<DepositFormValues> = async (data) => {
@@ -123,15 +87,14 @@ export default function CashierPage() {
   const onWithdrawSubmit: SubmitHandler<WithdrawFormValues> = async (data) => {
     await handleTransaction(data.amount, 'withdrawal', data.withdrawMethod, data.accountDetails);
   };
-  
-  const balance = userProfile?.balance ?? 0;
-  const isLoading = isUserLoading || isProfileLoading;
 
-  if (isLoading || !user) {
+  const balance = user?.balance ?? 0;
+
+  if (isUserLoading || !user) {
     return (
-        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-            <Loader2 className="w-16 h-16 animate-spin text-primary" />
-        </div>
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <Loader2 className="w-16 h-16 animate-spin text-primary" />
+      </div>
     );
   }
 
@@ -262,7 +225,7 @@ export default function CashierPage() {
                 </CardContent>
                 <CardFooter>
                   <Button type="submit" disabled={withdrawForm.formState.isSubmitting} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                     {withdrawForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Landmark className="mr-2 h-4 w-4" />}
+                    {withdrawForm.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Landmark className="mr-2 h-4 w-4" />}
                     Demander le retrait
                   </Button>
                 </CardFooter>
@@ -274,7 +237,3 @@ export default function CashierPage() {
     </div>
   );
 }
-
-    
-
-    

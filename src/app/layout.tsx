@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Header } from '@/components/header';
 import Link from 'next/link';
-import { FirebaseClientProvider } from '@/firebase';
+import { AuthProvider } from '@/providers/auth-provider';
 
 export const metadata: Metadata = {
   title: 'DagoPoker',
@@ -26,11 +26,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col bg-background">
-        <FirebaseClientProvider>
+        <AuthProvider>
           <Header />
           <main className="flex-grow">{children}</main>
           <Toaster />
-        </FirebaseClientProvider>
+        </AuthProvider>
       </body>
     </html>
   );
