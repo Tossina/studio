@@ -176,7 +176,7 @@ export function CreateGameForm({ setOpen }: CreateGameFormProps) {
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Choisir un format" />
-                  </TselectTrigger>
+                  </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="Cash Game">Cash Game</SelectItem>
